@@ -1,5 +1,5 @@
 git add .
-git commit -m "limit max speed to 300"
+git commit -m "mobile ui update"
 git push origin main
 
 pip install fastapi uvicorn[standard]

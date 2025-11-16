@@ -33,267 +33,468 @@ canvas{width:100%;height:320px;background:linear-gradient(#0b0f14,#0a1019);borde
 .ok{color:#9effb5}.warn{color:#ffd18f}.bad{color:#ff9b9b}
 button,.btn-primary{background:linear-gradient(135deg,#00c6ff,#0072ff);color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:15px;font-weight:600;transition:.3s background,.1s transform}
 button:hover,.btn-primary:hover{background:linear-gradient(135deg,#0072ff,#00c6ff);transform:translateY(-1px)}
+/* === OVERLAY: Base definition (mobile-first) === */
 #overlay {
   position: fixed;
   inset: 0;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   background: rgba(0,0,0,.6);
   backdrop-filter: blur(8px);
   z-index: 9999;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  padding: 16px;
+  animation: slideUp 0.3s ease-out;
 }
 
-/* 💻 데스크탑 전용 (768px 초과 시) */
+#overlay.hide { display: none; }
+
+/* === DESKTOP: top-aligned, fixed width === */
 @media (min-width: 769px) {
   #overlay {
-    inset: auto;       /* 전체 덮는 대신 */
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-
-    justify-content: center;
     align-items: flex-start;
-    padding-top: 40px; /* 살짝 여백 */
+    padding-top: 40px;
   }
   #overlay .card {
-    width: 720px;      /* 원하는 fixed width */
-    max-height: 90vh;  /* 세로는 스크롤 허용 */
+    width: 720px;
+    max-height: 90vh;
+    overflow-y: scroll;
   }
 }
 
-
-#overlay {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,.6);
-  backdrop-filter: blur(8px);
-  z-index: 9999;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+/* === MOBILE: bottom sheet style === */
+@media (max-width: 768px) {
+  #overlay {
+    align-items: flex-end;
+  }
+  #overlay .card {
+    width: 100%;
+    border-radius: 24px 24px 0 0;
+    max-height: 92vh;
+    padding: 20px 16px 24px;
+    margin: 0;
+    overflow-y: scroll;
+  }
 }
 
-#overlay.hide{display:none}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-/* 메인 카드 자체를 유리판 느낌 + 2컬럼 레이아웃으로 */
-#overlay .card{
-  max-height:100vh;
-  max-width:1000px;
-  width:100%;
-  overflow:hidden;
-  padding:20px 22px 18px;
-  border-radius:20px;
-  border:1px solid rgba(0,246,255,.35);
-  box-shadow:0 18px 40px rgba(0,0,0,.85);
+/* === OVERLAY CARD: Main container === */
+#overlay .card {
+  max-height: 100vh;
+  border: 1px solid rgba(0,246,255,.35);
+  border-radius: 20px;
+  width:1000px;
+  overflow-y: scroll;
+
   background:
     radial-gradient(circle at 0 0, rgba(0,246,255,.14), transparent 55%),
     radial-gradient(circle at 100% 0, rgba(0,170,255,.10), transparent 45%),
     rgba(5,10,18,.94);
+  box-shadow: 0 18px 40px rgba(0,0,0,.85);
+
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+
 }
 
-/* 폼 영역(left) + 프리뷰(right) */
-.overlay-grid{
-  display:grid;
-  grid-template-columns:minmax(0,0.6fr) minmax(460px,1fr);
-  gap:20px;
-  align-items:stretch;
-  margin-top:14px;
+#overlay .card::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+} 
+
+/* === OVERLAY GRID: 2-column desktop, 1-column mobile === */
+.overlay-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.6fr) minmax(360px, 1fr);
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 14px;
 }
 
-.overlay-main{
-  overflow-y:auto;
-  padding-right:4px;
+@media (max-width: 768px) {
+  .overlay-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-top: 12px;
+  }
 }
 
-.overlay-preview{
-  position:relative;
-  border-radius:16px;
+.overlay-main {
+  /* overflow-y: auto; */
+  padding-right: 4px;
+  max-height: calc(100vh - 200px);
+}
+
+@media (max-width: 768px) {
+  .overlay-main {
+    max-height: unset;
+    padding-right: 0;
+    order: 2;
+  }
+}
+
+/* === PREVIEW PANEL === */
+.overlay-preview {
+  position: relative;
+  border-radius: 16px;
   background:
-    radial-gradient(circle at 0 0,rgba(0,246,255,.16),transparent 55%),
+    radial-gradient(circle at 0 0, rgba(0,246,255,.16), transparent 55%),
     rgba(6,13,24,.97);
-  border:1px solid rgba(0,246,255,.3);
-  box-shadow:0 12px 30px rgba(0,0,0,.8);
-  padding:14px 14px 16px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+  border: 1px solid rgba(0,246,255,.3);
+  box-shadow: 0 12px 30px rgba(0,0,0,.8);
+  padding: 14px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* 프리뷰 이미지 프레임 */
-.preview-image-frame{
-  position:relative;
-  border-radius:12px;
-  overflow:hidden;
-  background:radial-gradient(circle at 50% 0,#1b2335,#05070a);
-  border:1px solid rgba(0,246,255,.25);
-  min-height:250px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+@media (max-width: 768px) {
+  .overlay-preview {
+    order: 1;
+    max-height: 300px;
+    overflow-y: auto;
+  }
 }
 
-.preview-image-frame::before{
-  content:"";
-  position:absolute;
-  inset:-120%;
-  background:conic-gradient(
+/* === PREVIEW IMAGE FRAME === */
+.preview-image-frame {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 0, #1b2335, #05070a);
+  border: 1px solid rgba(0,246,255,.25);
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .preview-image-frame {
+    min-height: 180px;
+  }
+}
+
+.preview-image-frame::before {
+  content: "";
+  position: absolute;
+  inset: -120%;
+  background: conic-gradient(
     from 210deg,
     rgba(0,246,255,.5),
     transparent 35%,
     transparent 65%,
     rgba(0,246,255,.5)
   );
-  opacity:.35;
-  mix-blend-mode:screen;
-  animation:previewGlow 12s linear infinite;
+  opacity: .35;
+  mix-blend-mode: screen;
+  animation: previewGlow 12s linear infinite;
 }
 
-@keyframes previewGlow{
-  to{transform:rotate(360deg);}
+@keyframes previewGlow {
+  to { transform: rotate(360deg); }
 }
 
-#trainPreviewImg{
-  position:relative;
-  max-width:100%;
-  max-height:100%;
-  object-fit:contain;
-  filter:drop-shadow(0 12px 24px rgba(0,0,0,.9));
+#trainPreviewImg {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 12px 24px rgba(0,0,0,.9));
 }
 
-/* 프리뷰 텍스트들 */
-.preview-title{
-  font-size:.95rem;
-  font-weight:600;
-  color:#e7f0ff;
+/* === PREVIEW TEXT & BADGES === */
+.preview-title {
+  font-size: .95rem;
+  font-weight: 600;
+  color: #e7f0ff;
 }
 
-.preview-line{
-  font-size:.8rem;
-  color:#9fc5ff;
+.preview-line {
+  font-size: .8rem;
+  color: #9fc5ff;
 }
 
-.preview-meta-row{
-  display:flex;
-  flex-wrap:wrap;
-  gap:6px;
-  margin-top:4px;
+.preview-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
 }
 
-.badge-chip{
-  font-size:.7rem;
-  padding:3px 8px;
-  border-radius:999px;
-  background:rgba(5,12,24,.9);
-  border:1px solid rgba(0,246,255,.35);
-  color:#cceaff;
+.badge-chip {
+  font-size: .7rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(5,12,24,.9);
+  border: 1px solid rgba(0,246,255,.35);
+  color: #cceaff;
 }
 
-.badge-chip.secondary{
-  border-color:rgba(255,255,255,.15);
-  color:#b7c3dd;
+.badge-chip.secondary {
+  border-color: rgba(255,255,255,.15);
+  color: #b7c3dd;
 }
 
-
-.difficulty-badge{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
+.difficulty-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
-.diff-label{
-  font-size:.7rem;
-  letter-spacing:-0.02em;
-  opacity:.85;
+.diff-label {
+  font-size: .7rem;
+  letter-spacing: -0.02em;
+  opacity: .85;
 }
 
-.diff-gauge{
-  display:flex;
-  gap:2px;
+.diff-gauge {
+  display: flex;
+  gap: 2px;
 }
 
-.diff-gauge .cell{
-  width:7px;
-  height:11px;
-  border-radius:3px;
-  background:rgba(255,255,255,.10);
-  box-shadow:0 0 0 rgba(0,0,0,0);
-  opacity:.45;
-  transition:background .18s ease, opacity .18s ease, box-shadow .18s ease, transform .12s ease;
+.diff-gauge .cell {
+  width: 7px;
+  height: 11px;
+  border-radius: 3px;
+  background: rgba(255,255,255,.10);
+  box-shadow: 0 0 0 rgba(0,0,0,0);
+  opacity: .45;
+  transition: background .18s ease, opacity .18s ease, box-shadow .18s ease, transform .12s ease;
 }
 
-.diff-gauge .cell.active{
-  background:var(--diff-color, #00f6ff);
-  opacity:1;
-  box-shadow:0 0 8px var(--diff-shadow, rgba(0,246,255,.75));
-  transform:translateY(-1px);
+.diff-gauge .cell.active {
+  background: var(--diff-color, #00f6ff);
+  opacity: 1;
+  box-shadow: 0 0 8px var(--diff-shadow, rgba(0,246,255,.75));
+  transform: translateY(-1px);
 }
 
-/* 조금 더 난이도 높을수록 오른쪽 셀은 살짝 연해지게 하고 싶다면 (선택사항)
-.diff-gauge .cell.active:nth-child(4),
-.diff-gauge .cell.active:nth-child(5){
-  background:#48c9ff;
-} */
-
-.preview-caption{
-  margin-top:8px;
-  font-size:.75rem;
-  color:#8fa2c6;
-  line-height:1.5;
+.preview-caption {
+  margin-top: 8px;
+  font-size: .75rem;
+  color: #8fa2c6;
+  line-height: 1.5;
 }
 
-/* 모바일에서는 1열로 정렬 */
-@media(max-width:840px){
-  .overlay-grid{grid-template-columns:1fr;}
-  #overlay .card{
-    max-width:100%;
-    margin:12px;
+/* === FORM STYLES === */
+.title {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #00f6ff;
+}
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.2rem;
   }
 }
-.title{font-size:1.4rem;font-weight:600;margin-bottom:4px;color:#00f6ff}
-.subtitle{font-size:.9rem;color:#9fc5ff;margin-bottom:16px}
-.form-label{display:block;font-size:.85rem;margin-bottom:12px;text-align:left;font-weight:500;color:#cceaff}
-.form-input{width:100%;box-sizing:border-box;padding:8px 10px;font-size:.9rem;border:1px solid rgba(0,246,255,.3);border-radius:8px;margin-top:4px;background:rgba(10,18,28,.6);color:#e7f0ff}
-.form-input:focus{border-color:#00f6ff;outline:none}
-@keyframes snow{0%{transform:translateY(-20px)}100%{transform:translateY(100vh)}}
-.snowflakes,.raindrops{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;display:none;overflow:hidden}
-.snowflakes div{position:absolute;background:#fff;width:10px;height:10px;border-radius:50%;opacity:.8;animation:snow 5s linear infinite}
-.raindrops{z-index:9998}
-.raindrops div{position:absolute;background:rgba(173,216,230,.8);width:2px;height:15px;animation:rain .5s linear infinite}
-@keyframes rain{0%{transform:translateY(-20px)}100%{transform:translateY(100vh)}}
-body{overflow-x:hidden;overflow-y:auto}
-@media (max-width:768px){html,body{height:100%}body{-webkit-overflow-scrolling:touch}#wrap{padding-bottom:96px}canvas#hud{height:42vh}}
-/* Hide large right ribbon on mobile for space and performance */
-@media (max-width:768px){
-  #ribbonBig{display:none !important}
+
+.subtitle {
+  font-size: .9rem;
+  color: #9fc5ff;
+  margin-bottom: 16px;
+  line-height: 1.5;
 }
-/* 재시작 FAB – 최상단, 클릭 확실하게 */
-.fab{
-  position:fixed;left:50%;bottom:24px;transform:translateX(-50%);padding:12px 18px;font-weight:700;border-radius:999px;
-  background:linear-gradient(135deg,#00c6ff,#0072ff);color:#fff;border:none;z-index:10001;
-  box-shadow:0 8px 24px rgba(0,0,0,.35);cursor:pointer;pointer-events:auto
+
+@media (max-width: 768px) {
+  .subtitle {
+    font-size: .85rem;
+    margin-bottom: 12px;
+  }
 }
-.fab.hide{display:none}
-.fab:hover{background:linear-gradient(135deg,#0072ff,#00c6ff);transform:translateX(-50%) translateY(-1px)}
+
+.form-label {
+  display: block;
+  font-size: .85rem;
+  margin-bottom: 12px;
+  margin-top: 4px;
+  text-align: left;
+  font-weight: 500;
+  color: #cceaff;
+}
+
+@media (max-width: 768px) {
+  .form-label {
+    font-size: .8rem;
+    margin-bottom: 8px;
+  }
+}
+
+.form-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  font-size: .9rem;
+  border: 1px solid rgba(0,246,255,.3);
+  border-radius: 10px;
+  margin-top: 4px;
+  background: rgba(10,18,28,.6);
+  color: #e7f0ff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus {
+  border-color: #00f6ff;
+  outline: none;
+  box-shadow: 0 0 12px rgba(0,246,255,.25);
+}
+
+@media (max-width: 768px) {
+  .form-input {
+    font-size: .85rem;
+    padding: 9px 10px;
+  }
+}
+@keyframes snow {
+  0% { transform: translateY(-20px); }
+  100% { transform: translateY(100vh); }
+}
+
+.snowflakes, .raindrops {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  display: none;
+  overflow: hidden;
+}
+
+.snowflakes div {
+  position: absolute;
+  background: #fff;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  opacity: .8;
+  animation: snow 5s linear infinite;
+}
+
+.raindrops { z-index: 9998; }
+
+.raindrops div {
+  position: absolute;
+  background: rgba(173,216,230,.8);
+  width: 2px;
+  height: 15px;
+  animation: rain .5s linear infinite;
+}
+
+@keyframes rain {
+  0% { transform: translateY(-20px); }
+  100% { transform: translateY(100vh); }
+}
+
+/* === BODY & LAYOUT === */
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+  html, body {
+    height: 100%;
+  }
+  body {
+    -webkit-overflow-scrolling: touch;
+  }
+  #wrap {
+    padding-bottom: 100px;
+  }
+  canvas#hud {
+    height: 42vh;
+  }
+}
+
+/* Hide large right ribbon on mobile */
+@media (max-width: 768px) {
+  #ribbonBig { display: none !important; }
+}
+
+/* === BUTTONS === */
+#btnStart {
+  width: 100%;
+  padding: 12px 16px;
+  font-size: .95rem;
+  margin-top: 12px;
+  border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  #btnStart {
+    padding: 11px 14px;
+    font-size: .9rem;
+    margin-top: 8px;
+  }
+}
+
+/* === KBD HELPER === */
+.kbd-info {
+  font-size: .75rem;
+  color: #8fa2c6;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .kbd-info { display: none; }
+}
+
+/* === MOBILE RESTART FAB === */
+.fab {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  font-weight: 700;
+  font-size: .9rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: #fff;
+  border: none;
+  z-index: 10001;
+  box-shadow: 0 8px 24px rgba(0,0,0,.35);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.fab:active {
+  transform: translateX(-50%) scale(0.95);
+}
+
+.fab.hide {
+  display: none !important;
+}
 .mobile-control-guide{display:none;font-size:14px;color:#9fc5ff;background:rgba(18,24,38,.7);border:1px solid rgba(0,246,255,.2);padding:8px 12px;border-radius:8px;margin-bottom:12px}
 @media (max-width:768px){.mobile-control-guide{display:block}}
-/* TASC 토글 – 살짝 아래 */
 .tasc-toggle {
-  position: absolute;
-  right: 26px;
+  position: fixed;
+  right: 20px;
+  top: 60px;
   display: flex;
   align-items: center;
   gap: 6px;
   font-family: 'Orbitron', sans-serif;
-  z-index: 1001;
-  top: 60px !important; 
+  z-index: 9998;
 }
-@media (max-width: 768px) {.tasc-toggle {top: 165px;}}
+
+@media (max-width: 768px) {
+  .tasc-toggle {
+    top: 60px;
+    right: 8px;
+  }
+}
 .tasc-toggle .tasc-label{font-size:12px;font-weight:600;color:#9fc5ff;user-select:none}
 .tasc-toggle input{display:none}
 .tasc-toggle .slider{position:relative;display:inline-block;width:46px;height:24px;background:rgba(255,255,255,.25);border-radius:24px;cursor:pointer;transition:background-color .3s;box-shadow:inset 0 0 4px rgba(0,0,0,.3)}
@@ -479,7 +680,7 @@ body{overflow-x:hidden;overflow-y:auto}
   }
 
   /* Header / overlay */
-  #overlay .card{max-width:980px;padding:20px 20px 18px;border-radius:16px}
+  #overlay .card{max-width:1000px;padding:20px 20px 18px;border-radius:16px}
   .title{font-size:1.3rem;color:var(--accent);display:flex;align-items:center;gap:10px}
   .subtitle{color:var(--muted);margin-bottom:14px}
 
@@ -616,19 +817,27 @@ body{overflow-x:hidden;overflow-y:auto}
   display: block !important;
 }
 /* 두 토글을 한 줄에 오른쪽 상단 배치 */
-.toggle-bar{
-  position:absolute;
-  right: 110px;
-  top:60px !important; /* 기존 TASC 위치 그대로 */
-  display:flex;
-  align-items:center;
-  font-size:12px;font-weight:600;color:#9fc5ff;user-select:none;
-   gap:10px;
-  z-index:1001;
+.toggle-bar {
+  position: fixed;
+  right: 120px;
+  top: 60px;
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #9fc5ff;
+  user-select: none;
+  gap: 10px;
+  z-index: 9998;
 }
-@media (max-width:768px){
-  .toggle-bar{ top:140px !important; };
 
+@media (max-width: 768px) {
+  .toggle-bar {
+    top: 35px;
+    font-size: 9px;
+    right: 2px;
+    z-index: 9998;
+  }
 }
 
 /* 랜덤 토글은 TASC와 동일한 모양 재사용 */
@@ -772,7 +981,7 @@ body{overflow-x:hidden;overflow-y:auto}
     </h2>
 
     <p class="subtitle" id="subtitleIntro">
-      초기값 입력 후 <b>TASC(자동정차)</b> 설정하고 <b>Space</b> 또는 아래 버튼으로 시작하세요. TASC가 활성화된 상태에서도, 운전자는 수동 조작으로 운전에 개입할 수 있습니다.
+      TASC가 활성화된 상태에서도, 운전자는 수동 조작으로 운전에 개입할 수 있습니다.
     </p>
 
     <!-- 토글 바: Random / TASC (기존 그대로 사용) -->
@@ -3372,7 +3581,7 @@ window.__brakeGuideOn = true;
       labelDown: "완화",
       labelRelease: "해방",
       subtitleIntro: 
-  "B1/B2단으로 제동을 시작해 <b>150m</b> P3 지상자 지점까지 속도를 <b>60km/h</b> 이하로 낮추세요. 그 이후에는 <b>TASC(자동정차)</b>가 자동으로 제동을 이어받습니다.",
+  "B1/B2단으로 제동을 시작해 <b>150m</b> (지상자) 지점까지 속도를 <b>60km/h</b> 이하로 낮추세요. 그 이후에는 <b>TASC(자동정차)</b>가 활성화됩니다.",
 
       labelTASC: "TASC",
       labelTrain: "전동차",
