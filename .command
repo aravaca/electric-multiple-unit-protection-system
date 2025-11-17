@@ -1,5 +1,5 @@
 git add .
-git commit -m "max screen"
+git commit -m "add mini panel"
 git push origin main
 
 pip install fastapi uvicorn[standard]

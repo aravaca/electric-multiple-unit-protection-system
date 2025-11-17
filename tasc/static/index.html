@@ -12,6 +12,102 @@
 <style>
 @import url('https://fonts.cdnfonts.com/css/a-otf-shin-go-pro');
 
+/* === Mini 3D HUD (top-right) === */
+#cabCard {
+  position: relative; /* mini HUD 기준점 */
+}
+
+.mini-hud {
+  position: absolute;
+  top: 10px;
+  right: 50px;
+  min-width: 150px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 0 0, rgba(0,246,255,.18), transparent 60%),
+    rgba(5,12,24,.88);
+  border: 1px solid rgba(0,246,255,.45);
+  box-shadow: 0 12px 26px rgba(0,0,0,.75);
+  backdrop-filter: blur(8px);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  font-size: 11px;
+  color: #cfe4ff;
+  pointer-events: none; /* 조작 방해 안 하도록 */
+  z-index: 6;
+}
+
+.mini-hud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  opacity: .9;
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.mini-hud-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #00f6ff, #0080ff);
+  box-shadow: 0 0 10px rgba(0,246,255,.9);
+}
+
+.mini-hud-rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+}
+
+.mini-row {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mini-label {
+  font-size: 9px;
+  opacity: .75;
+}
+
+.mini-value {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 타이머는 한 줄로 크게 */
+.mini-row.timer {
+  grid-column: 1 / 3;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.mini-row.timer .mini-value {
+  font-size: 13px;
+}
+
+.mini-row.timer .min,
+.mini-row.timer .sec {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 768px) {
+  .mini-hud {
+    top: 6px;
+    right: 6px;
+    padding: 6px 8px;
+    min-width: 130px;
+    font-size: 10px;
+  }
+  .mini-row .mini-value { font-size: 11px; }
+}
+
+
 html, body {
   margin: 0;
   background: radial-gradient(circle at 50% 20%, #0b0f14, #05070a);
@@ -875,10 +971,50 @@ body {
 </script>
 <div class="card" id="cabCard" style="flex:0 1 auto;" align="center">
   <div id="cab3d" style="background:#000;border-radius:8px;overflow:hidden"></div>
+
+  <!-- 🔹 3D 오른쪽 위 미니 HUD -->
+  <div id="miniHud" class="mini-hud">
+    <div class="mini-hud-header">
+      <span>RUN STATUS</span>
+      <span class="mini-hud-dot"></span>
+    </div>
+    <div class="mini-hud-rows">
+      <div class="mini-row timer">
+        <span class="mini-label">TIME</span>
+        <span class="mini-value" id="miniTimer">
+          <span class="min">00</span><span class="sep">:</span><span class="sec">00</span>
+        </span>
+      </div>
+
+      <div class="mini-row">
+        <span class="mini-label">SPD (km/h)</span>
+        <span class="mini-value" id="miniSpeed">—</span>
+      </div>
+
+      <div class="mini-row">
+        <span class="mini-label">DIST</span>
+        <span class="mini-value" id="miniRemain">—</span>
+      </div>
+
+      <div class="mini-row">
+        <span class="mini-label">GRADE (‰)</span>
+        <span class="mini-value" id="miniGrade">—</span>
+      </div>
+
+      <div class="mini-row">
+        <span class="mini-label">NOTCH</span>
+        <span class="mini-value" id="miniNotch">-</span>
+      </div>
+    </div>
+  </div>
+
   <div class="hint" style="font-size:12px;color:#9fc5ff;margin-top:6px">
     <!-- 200m 지점부터 50m 간격으로 참고 표지판이 설치되어 있습니다. -->
   </div>
 </div>
+
+
+
 
 <!-- Runtime: lock current pixel size so the card and 3D mount stop resizing with viewport
      This sets inline width/height in pixels (no visual change) and exposes
@@ -1256,6 +1392,13 @@ const remEl=document.getElementById("rem"),
       notchEl=document.getElementById("notch"),
       fb=document.getElementById("fb"),
       timerEl=document.getElementById("timer");
+
+// 🔹 mini HUD 요소
+const miniTimer = document.getElementById("miniTimer"),
+      miniSpeed = document.getElementById("miniSpeed"),
+      miniRemain = document.getElementById("miniRemain"),
+      miniGrade = document.getElementById("miniGrade"),
+      miniNotch = document.getElementById("miniNotch");
 const overlay=document.getElementById("overlay"),
       btnStart=document.getElementById("btnStart"),
       canvas=document.getElementById("hud"),
@@ -2769,8 +2912,18 @@ if (Math.abs(rem) <= 0.35) {
   remEl.style.color = "";          // 기본 (.stat의 하얀색으로 복귀)
 }
 
-  spdEl.textContent = (st.v * 3.6).toFixed(1);
+// 🔹 mini HUD – 거리 동기화
+if (miniRemain) {
+  miniRemain.textContent = remEl.textContent;
+  miniRemain.style.color = remEl.style.color;
+}
 
+spdEl.textContent = (st.v * 3.6).toFixed(1);
+
+// 🔹 mini HUD – 속도
+if (miniSpeed) {
+  miniSpeed.textContent = spdEl.textContent;
+}
 
 const maxIdx = (vehicle?.notches ?? 10) - 1; // EB 인덱스
 const forwardAccels = vehicle?.forward_notch_accels ?? [0.139, 0.278, 0.417, 0.556, 0.694];
@@ -2798,7 +2951,19 @@ if (st.lever_notch === 0) {
 
 notchEl.textContent = notchText;
 notchEl.style.color = notchColor;
+
+// 🔹 mini HUD – 노치
+if (miniNotch) {
+  miniNotch.textContent = notchEl.textContent;
+  miniNotch.style.color = notchEl.style.color;
+}
+
 grade_percentEl.textContent = (10 * st.grade_percent).toFixed(1);
+
+// 🔹 mini HUD – 구배
+if (miniGrade) {
+  miniGrade.textContent = grade_percentEl.textContent;
+}
 
 const running  = !!st.running;
 const finished = !!st.finished;
@@ -2823,6 +2988,15 @@ if (Math.abs(toShowInt) <= 2) {
   timerEl.style.color = "";          // 기본 색상 (CSS .stat)
   timerEl.classList.remove('bad');
 } 
+
+// 🔹 mini HUD – 타이머
+if (miniTimer) {
+  miniTimer.innerHTML = timerEl.innerHTML;
+  // 색상/상태도 같이 복사
+  miniTimer.style.color = timerEl.style.color;
+  if (timerEl.classList.contains('bad')) miniTimer.classList.add('bad');
+  else miniTimer.classList.remove('bad');
+}
 
   // 그래프/미니 인디케이터
   // drawHUD(st);
