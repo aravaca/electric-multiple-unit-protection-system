@@ -2029,13 +2029,13 @@ const platMatTop = new THREE.MeshStandardMaterial({ color: 0xd8dbe1, roughness: 
 const platMatEdge = new THREE.MeshStandardMaterial({ color: 0xf0d060, roughness: 0.6, metalness: 0.0 }); // 노란 라인
 
 // 좌측 플랫폼 (높이는 그대로 1.13m로 유지)
-// const plat = new THREE.Mesh(new THREE.BoxGeometry(platW, platH, platformLen), platMatTop);
+const plat = new THREE.Mesh(new THREE.BoxGeometry(platW, platH, platformLen), platMatTop);
 // plat.position.set(+2.4 + 4.9415, platH / 2, platZ - platformLen / 2); // 바닥에서 1.13m로 설정, 높이는 그대로 유지
 // plat.receiveShadow = false; plat.castShadow = false;
 // scene.add(plat);
 
 // // 좌측 노란 라인
-// const platLine = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.01, platformLen), platMatEdge);
+const platLine = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.01, platformLen), platMatEdge);
 // platLine.position.set(+1.55 + 4.9415, platH+ 0.01, platZ - platformLen / 2); // 노란 라인 위치도 길이에 맞춰 조정
 // platLine.receiveShadow = false; platLine.castShadow = false; 
 // scene.add(platLine);
