@@ -1104,12 +1104,12 @@ class StoppingSim:
         a_target = pwr_accel + a_brake + a_grade + a_davis
 
 
-        if st.lever_notch < 0 and st.v * 3.6 < 0.5:
-        # 고속/중량 차량에서도 체감되는 출발 가속도 (튜닝 포인트)
-            min_start_accel = 0.15 # m/s² 정도 추천 (0.1~0.2 사이에서 조절)
+        # if st.lever_notch < 0 and st.v * 3.6 < 0.5:
+        # # 고속/중량 차량에서도 체감되는 출발 가속도 (튜닝 포인트)
+        #     min_start_accel = 0.15 # m/s² 정도 추천 (0.1~0.2 사이에서 조절)
 
-            if a_target < min_start_accel:
-                a_target = min_start_accel
+        #     if a_target < min_start_accel:
+        #         a_target = min_start_accel
 
 
         rem_now = self.scn.L - st.s

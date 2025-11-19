@@ -1,5 +1,5 @@
 git add .
-git commit -m "fix headlight  bug"
+git commit -m "fix accel bug"
 git push origin main
 
 pip install fastapi uvicorn[standard]
