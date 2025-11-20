@@ -1068,7 +1068,7 @@ body {
             <option value="E233" selected>E233계</option>
             <option value="E235">E235계</option>
             <option value="3000">서울교통공사 3000호대 VVVF 전동차</option>
-            <!-- <option value="N700S">신칸센 N700S계</option>  -->
+            <option value="N700S">신칸센 N700S계</option> 
             <option value="100000">한국철도공사 100000호대 전동차</option> 
             <option value="EF510">EF510형 전기기관차 + E26계 객차</option> 
           </select>
@@ -1224,28 +1224,19 @@ const CAB_LAYOUTS = {
   n700s: {
     src: "/static/photos/n700s_cab.png",
     size: { width: 1880, height: 1040 },
-    windowPolys: [
-
-[
+    windowPoly: [
   [579, 0],
 [770, 520],
 [1203, 526],
 [1605, 535],
 [1880, 248],
 [1880, 0]
-  ],
-  [
-  [5, 543],
-[137, 558],
-[409, 573],
-[530, 543],
-[710, 528],
-[470, 0],
-[5, 3]
-  ]
+
+  
+
 
     ],
-    speedText: { x: 1020, y: 830, fontSize: 72, letterSpacing: 6 },
+    speedText: { x: 897, y: 905, fontSize: 24, letterSpacing: 2 },
   },
   ktx: {
     src: "/static/photos/ktx_cab.png",
@@ -1264,7 +1255,7 @@ const CAB_LAYOUTS = {
 [258, 218],
 [266, 210],
     ],
-    speedText: { x: 865, y: 750, fontSize: 36, letterSpacing: 4 },
+    speedText: { x: 865, y: 745, fontSize: 36, letterSpacing: 4 },
   },
 };
 
@@ -2329,9 +2320,15 @@ const y = lowerName.includes('ktx')
   
 const z = 200 - rem;
 
+const angle = lowerName.includes('ktx')
+  ? 0.6
+  : (lowerName.includes('n700s'))
+    ? 0.6
+    : 0.8; //the rest
+
 // 카메라를 살짝 왼쪽으로 이동시키고, 살짝 아래쪽을 바라보게 설정
 const xOffset = 0.9;  // 카메라를 왼쪽으로 1.5 단위 이동
-const yOffset = y - 0.4; // 기존보다 살짝 더 아래쪽을 바라보도록 설정
+const yOffset = y - angle; // 기존보다 살짝 더 아래쪽을 바라보도록 설정
 const zOffset = z + 4.0;  // 기존 z에 조정값 추가
 
 // 카메라 위치 설정 (왼쪽으로 이동, z와 y값 유지 또는 조정)
