@@ -123,7 +123,7 @@ html, body {
   backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .2s,box-shadow .2s
 }
 .card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.7)}
-canvas{width:100%;height:320px;background:linear-gradient(#0b0f14,#0a1019);border-radius:12px}
+canvas{width:100%;height:320px;background:linear-gradient(#0b0f14,#0a1019);}
 .kbd{background:rgba(10,18,28,.8);border:1px solid #2b3f5f;color:#9fc5ff;padding:2px 6px;border-radius:6px;font-size:12px}
 .stat{font-size:32px;font-weight:800;color:#fff;text-shadow:0 0 4px rgba(0,200,255,.8)}
 .ok{color:#9effb5}.warn{color:#ffd18f}.bad{color:#ff9b9b}
@@ -650,101 +650,16 @@ body {
   -webkit-touch-callout: none;
 }
 
-/* ===== Cab mask frames + mini dashboard ===== */
-#cab3d { position: relative; }
+#cab3d {
+  position: relative; /* three.js 캔버스 기준점 */
+}
 
-
-/* 공통 프레임 레이어 */
-.cab-frame {
+/* three.js 위를 꽉 덮는 운전실 패널 */
+#cabOverlayFull {
   position: absolute;
-  left: 0; right: 0;
-  pointer-events: none;
-  z-index: 5; /* WebGL 위에 */
-}
-
-/* 상단 프레임: 얇고 시야 살짝 가림 */
-.cab-frame.top {
-  top: 0;
-  /* height: clamp(6%, 9vh, 75px); */
-  height: 85px;
-  background:
-    linear-gradient(to bottom, rgba(10,14,20,.95), rgba(10,14,20,.76));
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  box-shadow: inset 0 -18px 24px rgba(0,0,0,.35);
-}
-/* 하단 프레임: 상단보다 조금 더 두껍게 */
-.cab-frame.bottom {
-  bottom: 0;
-  /* height: clamp(8%, 14vh, 190px); */
-  height: 220px;
-  background:
-    linear-gradient(to top, rgba(10,14,20,.96), rgba(10,14,20,1));
-  border-top: 1px solid rgba(255,255,255,.08);
-  box-shadow: inset 0 18px 28px rgba(0,0,0,.42);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding-top: 1px; /* 아래쪽 마진 추가 */
-  padding-bottom: 1px; /* 아래쪽 마진 추가 */
-}
-/* 대시보드 박스 (속도/노치) */
-.cab-dash {
-  width: 90%; /* 부모 요소 너비를 꽉 채우기 */
-  height: 98%; /* 부모 요소 높이를 꽉 채우기 */
-  display: flex;
-  justify-content: center;  /* 수평 중앙 정렬 */
-  align-items: flex-start;  /* 수직 정렬을 위로 설정 */
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  background: rgba(20,28,40,.55);
-  border: 1px solid rgba(0,246,255,.14);
-  box-shadow: 0 8px 20px rgba(0,0,0,.35), inset 0 0 20px rgba(0,180,255,.06);
-  pointer-events: none; /* 입력 방해 X */
-  backdrop-filter: blur(6px);
-}
-
-.cab-dash.has-inst {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-
-/* 속도 영역 (좌) */
-.cab-speed {
-  position: absolute;
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-family: 'Orbitron', system-ui, sans-serif;
-}
-
-
-/* 속도 값 */
-.cab-speed .val {
-  font-size: 18px;
-  font-weight: 800;
-  color: #eaffff;
-  text-shadow: 0 0 10px rgba(0,220,255,.35);
-  letter-spacing: -1px;
-  font-style: italic;
-  display: inline-block;
-  width: 3ch; /* 숫자 3자리 공간 확보 (ch 단위는 글자 폭 기준) */
-  text-align: right; /* 숫자 폭 내에서 오른쪽 정렬 */
-}
-
-
-
-/* EB 시 빨강, N/P 시 색상 */
-.cab-notch.eb { color:#ff6b6b; text-shadow:0 0 10px rgba(255,90,90,.35); }
-.cab-notch.neutral { color:#9effb5; text-shadow:0 0 8px rgba(140,255,190,.25); }
-.cab-notch.power { color:#add8e6; text-shadow:0 0 8px rgba(120,200,255,.25); }
-
-/* 모바일에서 약간 더 높이 */
-@media (max-width: 768px) {
-  .cab-frame.top { height: clamp(7%, 11vh, 120px); }
-  .cab-frame.bottom { height: clamp(10%, 14vh, 170px); }
-  .cab-dash { gap: 10px; padding: 9px 12px; }
+  inset: 0;
+  pointer-events: none; /* 조작은 three.js 캔버스로 그대로 전달 */
+  z-index: 5; /* three.js canvas(1) 위, HUD(미니창) 아래/위는 필요에 따라 조정 가능 */
 }
 
 </style>
@@ -875,7 +790,6 @@ body {
   margin: 0 !important;
   padding: 0 !important;
   aspect-ratio: 16/9 !important;
-  border-radius: 6px !important;
   box-sizing: border-box !important;
   display: block;
 }
@@ -883,7 +797,6 @@ body {
 /* Slightly different spacing on very small screens */
 @media (max-width: 480px) {
   #cabCard { padding: 4px !important; }
-  #cabCard > #cab3d { border-radius: 4px !important; }
 }
 /* *******************************************************************
    FIXED LAYOUT: when you want the 3D view to remain the same size/pos
@@ -901,7 +814,6 @@ body {
   z-index: 10003 !important;
   padding: 2px !important;
   margin: 0 !important;
-  border-radius: 8px !important;
   box-shadow: 0 12px 32px rgba(0,0,0,0.6) !important;
 }
 
@@ -912,7 +824,6 @@ body {
   aspect-ratio: unset !important;
   margin: 0 !important;
   padding: 0 !important;
-  border-radius: 6px !important;
   box-sizing: border-box !important;
   display: block !important;
 }
@@ -973,7 +884,7 @@ body {
 })();
 </script>
 <div class="card" id="cabCard" style="flex:0 1 auto;" align="center">
-  <div id="cab3d" style="background:#000;border-radius:8px;overflow:hidden"></div>
+  <div id="cab3d" style="background:#000;overflow:hidden"></div>
 
   <!-- 🔹 3D 오른쪽 위 미니 HUD -->
   <div id="miniHud" class="mini-hud">
@@ -1157,7 +1068,7 @@ body {
             <option value="E233" selected>E233계</option>
             <option value="E235">E235계</option>
             <option value="3000">서울교통공사 3000호대 VVVF 전동차</option>
-            <option value="N700S">신칸센 N700S계</option> 
+            <!-- <option value="N700S">신칸센 N700S계</option>  -->
             <option value="100000">한국철도공사 100000호대 전동차</option> 
             <option value="EF510">EF510형 전기기관차 + E26계 객차</option> 
           </select>
@@ -1296,6 +1207,243 @@ body {
 <script>
 
 /* ===== WebSocket & TASC ===== */
+
+//여기야
+const CAB_LAYOUTS = {
+  default: {
+    src: "/static/photos/cab.png", // TODO: 실제 경로로 수정
+    size: { width: 1884, height: 1080 }, // TODO: PNG 원본 해상도
+    windowPoly: [
+      [301, 623],
+      [197, 1],
+      [1884, 0],
+      [1884, 623],
+    ],
+    speedText: { x: 545, y: 1020, fontSize: 40, letterSpacing: 3 },
+  },
+  n700s: {
+    src: "/static/photos/n700s_cab.png",
+    size: { width: 1880, height: 1040 },
+    windowPolys: [
+
+[
+  [579, 0],
+[770, 520],
+[1203, 526],
+[1605, 535],
+[1880, 248],
+[1880, 0]
+  ],
+  [
+  [5, 543],
+[137, 558],
+[409, 573],
+[530, 543],
+[710, 528],
+[470, 0],
+[5, 3]
+  ]
+
+    ],
+    speedText: { x: 1020, y: 830, fontSize: 72, letterSpacing: 6 },
+  },
+  ktx: {
+    src: "/static/photos/ktx_cab.png",
+    size: { width: 1915, height: 993 },
+    windowPoly: [
+[247, 168],
+[957, 101],
+[1658, 172],
+[1633, 210],
+[1648, 212],
+[1436, 538],
+[584, 536],
+[538, 540],
+[480, 531],
+[450, 511],
+[258, 218],
+[266, 210],
+    ],
+    speedText: { x: 865, y: 750, fontSize: 36, letterSpacing: 4 },
+  },
+};
+
+// vehicle JSON 경로 → 레이아웃 키
+function getCabLayoutKeyFromVehicle(filePath) {
+  const lower = (filePath || "").toLowerCase();
+  if (lower.includes("n700s")) return "n700s";
+  if (lower.includes("ktx1")) return "ktx";
+  // TODO: 다른 열차도 필요하면 여기에 추가
+  return "default";
+}
+
+// 전역: 전체 cab 오버레이 생성
+function buildCabOverlay(layoutKey) {
+  const mount = document.getElementById("cab3d");
+  if (!mount) {
+    console.warn("buildCabOverlay: #cab3d not found");
+    return;
+  }
+
+  // 기존 오버레이 제거
+  let existing = document.getElementById("cabOverlayFull");
+  if (existing) existing.remove();
+
+  const config = CAB_LAYOUTS[layoutKey] || CAB_LAYOUTS.default;
+  const { src, size, windowPoly, speedText } = config;
+  const CAB_W = size.width;
+  const CAB_H = size.height;
+
+  const overlay = document.createElement("div");
+  overlay.id = "cabOverlayFull";
+  mount.appendChild(overlay);
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("viewBox", `0 0 ${CAB_W} ${CAB_H}`);
+  svg.setAttribute("width", "100%");
+  svg.setAttribute("height", "100%");
+  svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
+
+  // clipPath: 전체 사각형 - 창 poly
+  const defs = document.createElementNS(svgNS, "defs");
+  const cp = document.createElementNS(svgNS, "clipPath");
+  cp.setAttribute("id", "cabWindowClip");
+  cp.setAttribute("clipPathUnits", "userSpaceOnUse");
+
+  const path = document.createElementNS(svgNS, "path");
+  let d = `M0 0 H${CAB_W} V${CAB_H} H0 Z `; // 전체
+
+  d += "M";
+  windowPoly.forEach(([x, y], i) => {
+    d += (i === 0 ? `${x} ${y}` : ` L${x} ${y}`);
+  });
+  d += " Z";
+  
+
+  path.setAttribute("d", d);
+  path.setAttribute("fill", "black");
+  path.setAttribute("fill-rule", "evenodd");
+  path.setAttribute("clip-rule", "evenodd");
+  cp.appendChild(path);
+  defs.appendChild(cp);
+  svg.appendChild(defs);
+
+  // cab PNG
+  const img = document.createElementNS(svgNS, "image");
+  img.setAttributeNS("http://www.w3.org/1999/xlink", "href", src);
+  img.setAttribute("x", "0");
+  img.setAttribute("y", "0");
+  img.setAttribute("width", CAB_W);
+  img.setAttribute("height", CAB_H);
+  img.setAttribute("clip-path", "url(#cabWindowClip)");
+  svg.appendChild(img);
+
+  // 속도 텍스트
+  const spCfg = speedText || { x: CAB_W / 2, y: CAB_H / 2, fontSize: 80, letterSpacing: 8 };
+  const speedTextNode = document.createElementNS(svgNS, "text");
+  speedTextNode.setAttribute("id", "svgSpeed");
+  speedTextNode.setAttribute("x", spCfg.x);
+  speedTextNode.setAttribute("y", spCfg.y);
+  speedTextNode.setAttribute("text-anchor", "end");
+  speedTextNode.setAttribute("fill", "#eaffff");
+  speedTextNode.setAttribute("font-family", `'Orbitron', system-ui, sans-serif`);
+  speedTextNode.setAttribute("font-size", spCfg.fontSize);
+  speedTextNode.setAttribute("letter-spacing", spCfg.letterSpacing);
+  speedTextNode.setAttribute("font-weight", "700");
+  speedTextNode.setAttribute("font-style", "italic");
+  speedTextNode.textContent = "0";
+  svg.appendChild(speedTextNode);
+
+  overlay.appendChild(svg);
+  
+// ----------------------------------------------------
+// 🔽 KTX / N700S 제외하고 mini brake ladder 추가하기
+// ----------------------------------------------------
+
+if (layoutKey !== "ktx" && layoutKey !== "n700s") {
+
+  // mini ladder용 오버레이 캔버스 만들기
+  const ladderCanvas = document.createElement("canvas");
+  ladderCanvas.id = "miniLadderCanvas";
+  ladderCanvas.style.position = "absolute";
+  ladderCanvas.style.right = "1140px"; // 원하는 위치 조정
+  ladderCanvas.style.bottom = "29px"; // PNG 계기판에서 ladder 위치로 맞출 수 있음
+  ladderCanvas.style.width = "25px";
+  ladderCanvas.style.height = "110px";
+  ladderCanvas.style.pointerEvents = "none";
+  ladderCanvas.style.zIndex = "6";
+
+  overlay.appendChild(ladderCanvas);
+
+  // 캔버스 실제 픽셀 크기 설정(DPR 대응)
+  const dpr = window.devicePixelRatio || 1;
+  ladderCanvas.width = 60 * dpr;
+  ladderCanvas.height = 180 * dpr;
+
+  // 🔧 mini ladder 그리는 함수 (기존 코드 재활용)
+  window.drawMiniBrakeLadder = function(st) {
+    const cvs = document.getElementById("miniLadderCanvas");
+    if (!cvs) return;
+    const ctx = cvs.getContext("2d");
+    const w = cvs.width;
+    const h = cvs.height;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const dpr = window.devicePixelRatio || 1;
+    const notches = vehicle?.notches ?? 10;
+    const ebIdx = notches - 1;
+    const blocks = ebIdx;
+    const cur = Math.max(0, Math.min(ebIdx, st.lever_notch | 0));
+
+    const pad = 6 * dpr;
+    const gap = 6 * dpr;
+    const bW = w - pad * 2;
+    const bH = (h - pad * 2 - gap * (blocks - 1)) / blocks;
+
+    for (let k = 1; k <= ebIdx - 1; k++) {
+      const i = k - 1;
+      const y = h - pad - (i + 1) * bH - i * gap;
+
+      ctx.fillStyle = "rgba(60,80,100,0.35)";
+      ctx.fillRect(pad, y, bW, bH);
+
+      if (cur !== ebIdx && k <= cur) {
+        ctx.fillStyle = "#ffd34d";
+        ctx.fillRect(pad, y, bW, bH);
+      }
+
+      ctx.strokeStyle = "rgba(20,30,45,0.6)";
+      ctx.lineWidth = 2 * dpr;
+      ctx.strokeRect(pad, y, bW, bH);
+    }
+
+    // EB block
+    const yEB = h - pad - blocks * bH - (blocks - 1) * gap;
+    ctx.fillStyle = "rgba(60,80,100,0.35)";
+    ctx.fillRect(pad, yEB, bW, bH);
+
+    if (cur === ebIdx) {
+      ctx.fillStyle = "#ff5757";
+      ctx.fillRect(pad, yEB, bW, bH);
+    }
+
+    ctx.strokeStyle = "rgba(20,30,45,0.6)";
+    ctx.lineWidth = 2 * dpr;
+    ctx.strokeRect(pad, yEB, bW, bH);
+  };
+}
+}
+
+// 속도 숫자 업데이트 (ws.onmessage에서 사용)
+function updateInstrumentHUD({ speed }) {
+  const s = document.getElementById("svgSpeed");
+  if (!s) return;
+  s.textContent = String(Math.round(speed ?? 0));
+}
+window.updateInstrumentHUD = updateInstrumentHUD;
+
 const ws = new WebSocket((location.protocol==="https:"?"wss://":"ws://")+location.host+"/ws");
 
 const icons = [
@@ -1523,339 +1671,26 @@ const scene = new THREE.Scene();
   // runtime-adjustable target DPR for the auto-scaler (initialized to current setting)
   let targetDPR = renderer.getPixelRatio();
 
-  
-// ----- Cab frames & mini dashboard overlay -----
-(function(){
-  const topMask = document.createElement('div');
-  topMask.className = 'cab-frame top';
 
-  const botMask = document.createElement('div');
-  botMask.className = 'cab-frame bottom';
-
-  const dash = document.createElement('div');
-  dash.className = 'cab-dash';
-dash.innerHTML = `
-  <!-- inst.png를 SVG viewBox 위에 깔고, 좌표 고정 텍스트를 올릴 래퍼 -->
-  <div id="cabInstWrap"
-       style="position:absolute; inset:0; width:100%; height:100%;
-              pointer-events:none; border-radius:12px; overflow:hidden;"></div>
-  </div>
-`;
-
-
-// --- inst.png를 SVG viewBox로 감싸기: PNG 원본 사이즈를 반드시 맞춰주세요 ---
-let INST_SRC = '/static/photos/inst.png';
-let INST_SIZE = { width: 7560, height: 1760 };
-
-let INST_MARKERS = {
-  speed: { x: 2195, y: 1520 },
-  ladder: { x: 970, y: 940, width: 150, height: 630 }
-};
-
-let INST_SPEED_FONT_SIZE = 150; // 기본값
-let INST_SPEED_LETTER_SPACING = "12px"; // 기본값
-
-// 열차별 계기판 레이아웃 정의
-const INSTRUMENT_LAYOUTS = {
-  default: {
-    src: '/static/photos/inst.png',
-    size: { width: 7560, height: 1760 },
-    markers: {
-      speed: { x: 2195, y: 1520 },
-      ladder: { x: 970, y: 940, width: 150, height: 630 }
-    },
-    speedFontSize: 150,
-    speedLetterSpacing: "12px"
-  },
-
-  ktx: {
-    src: '/static/photos/ktx_inst.png',
-    size: { width: 1908, height: 460 }, // ktx_inst.png 실제 해상도로 수정
-    markers: {
-      speed: { x: /* TODO: */ 883, y: 170 }, // KTX 계기판에서 속도 숫자 위치
-      ladder: { x: /* TODO: */ 1200, y: 900, width: 150, height: 630 }
-    },
-    speedFontSize: 35,
-    speedLetterSpacing: "10px"
-  },
-
-  n700s: {
-    src: '/static/photos/n700s_inst.png',
-    size: { width: 1880, height: 488 }, // n700s_inst.png 실제 해상도로 수정
-    markers: {
-      speed: { x: /* TODO: */ 901,  y: 352 },
-      ladder: { x: /* TODO: */ 1000, y: 900, width: 150, height: 630 }
-    },
-    speedFontSize: 25,
-    speedLetterSpacing: "3px"
-  }
-};
-
-
-function setInstrumentLayout(layoutKey) {
-  const cfg = INSTRUMENT_LAYOUTS[layoutKey] || INSTRUMENT_LAYOUTS.default;
-
-  INST_SRC = cfg.src;
-  INST_SIZE = cfg.size;
-  INST_MARKERS = cfg.markers;
-  INST_SPEED_FONT_SIZE = cfg.speedFontSize || 150; // 🔹 여기
-  INST_SPEED_LETTER_SPACING = cfg.speedLetterSpacing || "12px";
-  // 계기판 SVG를 다시 생성 (image + speed text + mini ladder)
-  try {
-    if (typeof mountInstrumentSVG === 'function') {
-      mountInstrumentSVG();
-    }
-  } catch (e) {
-    console.debug('setInstrumentLayout error', e);
-  }
+// vehicle JSON 파일 경로 → 레이아웃 key 매핑
+function getCabLayoutKeyFromVehicle(filePath) {
+  const lower = (filePath || "").toLowerCase();
+  if (lower.includes("n700s")) return "n700s";
+  if (lower.includes("ktx1")) return "ktx";
+  // 필요하면 EF510, 서울 3000 등도 여기에 else-if로 추가
+  return "default";
 }
 
-// 전역으로도 쓸 수 있게
-try { window.setInstrumentLayout = setInstrumentLayout; } catch (e) {}
-
-// 네온 느낌 필터
-const SVG_FILTER_DEF = `
-<defs>
-  <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-    <feGaussianBlur stdDeviation="3" result="blur"/>
-    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-  </filter>
-</defs>
-`;
-
-/** 계기판 위에 inst.png + 속도 텍스트를 한 번 세팅 */
-function mountInstrumentSVG() {
-  const wrap = document.getElementById('cabInstWrap');
-  if (!wrap) return;
-
-// --- SVG Radius 적용용 clipPath 생성 ---
 
 
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('viewBox', `0 0 ${INST_SIZE.width} ${INST_SIZE.height}`);
-  svg.setAttribute('width', '100%');
-  svg.setAttribute('height', '100%');
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-
-  // 필터 추가
-  svg.insertAdjacentHTML('beforeend', SVG_FILTER_DEF);
-
-  const radius = 20; // ← 원하는 border-radius px
-
-const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
-clip.setAttribute('id', 'instRadius');
-
-const clipRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-clipRect.setAttribute('x', 0);
-clipRect.setAttribute('y', 0);
-clipRect.setAttribute('width', INST_SIZE.width);
-clipRect.setAttribute('height', INST_SIZE.height);
-clipRect.setAttribute('rx', radius);
-clipRect.setAttribute('ry', radius);
-
-clip.appendChild(clipRect);
-svg.appendChild(clip);
-
-  // inst.png 이미지 배경
-  const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
-  img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', INST_SRC);
-  img.setAttribute('x', '0');
-  img.setAttribute('y', '0');
-  img.setAttribute('width', INST_SIZE.width);
-  img.setAttribute('height', INST_SIZE.height);
-  img.setAttribute('clip-path', 'url(#instRadius)');
-  svg.appendChild(img);
-
-  // 공통 텍스트 스타일
-  const baseTextAttrs = {
-    fill: '#eaffff',
-    'font-family': `'Orbitron', system-ui, sans-serif`,
-    'font-weight': '550',
-    // 'letter-spacing': '12px',
-    //'font-size': '150px',
-    // filter: 'url(#glow)',
-  };
-
-  const makeText = (id, x, y, size, INST_SPEED_LETTER_SPACING, txt, extra = {}) => {
-    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    t.setAttribute('id', id);
-    t.setAttribute('x', x);
-    t.setAttribute('y', y);
-    t.setAttribute('font-size', size);
-    t.setAttribute('letter-spacing', INST_SPEED_LETTER_SPACING);
-    for (const [k, v] of Object.entries({ ...baseTextAttrs, ...extra })) {
-      t.setAttribute(k, v);
-    }
-    t.textContent = txt;
-    return t;
-  };
-
-  // 속도 텍스트 (오른쪽 끝 정렬)
-svg.appendChild(
-  makeText(
-    'svgSpeed',
-    INST_MARKERS.speed.x,
-    INST_MARKERS.speed.y,
-    INST_SPEED_FONT_SIZE, // 🔹 여기만 변경]
-    INST_SPEED_LETTER_SPACING,
-    '0',
-    { 'text-anchor': 'end', 'font-style': 'italic'}
-  )
-);
-  wrap.innerHTML = '';
-  wrap.appendChild(svg);
-
-  // 처음 한 번은 현재 vehicle.notches 기준으로 라더 생성
-  buildInstrumentLadder(window.vehicle?.notches || 10);
+// 기존 updateInstrumentHUD 이름을 그대로 재사용해서,
+// ws.onmessage 코드 수정 최소화
+function updateInstrumentHUD({ speed }) {
+  const s = document.getElementById("svgSpeed");
+  if (!s) return;
+  s.textContent = String(Math.round(speed ?? 0));
 }
-
-/** 현재 cabInstWrap 안의 SVG를 찾아서 mini brake ladder rect들을 다시 만듦 */
-function buildInstrumentLadder(notchCount) {
-  const wrap = document.getElementById('cabInstWrap');
-  if (!wrap) return;
-  const svg = wrap.querySelector('svg');
-  if (!svg) return;
-
-  const ladderInfo = INST_MARKERS.ladder;
-  if (!ladderInfo) return;
-
-  // EB 인덱스 계산
-  const ebIdx = getEbIndex();
-  const blocks = ebIdx;
-
-  // 이전 그룹 제거
-  const oldGroup = svg.querySelector('#svgLadderGroup');
-  if (oldGroup) oldGroup.remove();
-
-  const pad = 10;
-  const gap = 12;
-  const totalH = ladderInfo.height - pad * 2 - gap * (blocks - 1);
-  const blockH = totalH / blocks;
-  const blockW = ladderInfo.width - pad * 2;
-  const x0 = ladderInfo.x + pad;
-  const yBottom = ladderInfo.y + ladderInfo.height - pad;
-
-  const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-  g.setAttribute('id', 'svgLadderGroup');
-
-  const baseFill = '#3c5064';
-  const baseStroke = '#141e2d';
-
-  // B1 ~ B(EB-1)
-  for (let k = 1; k <= ebIdx - 1; k++) {
-    const i = k - 1;
-    const y = yBottom - (i + 1) * blockH - i * gap;
-
-    const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    r.setAttribute('id', `svgLadderB${k}`);
-    r.setAttribute('x', x0);
-    r.setAttribute('y', y);
-    r.setAttribute('width', blockW);
-    r.setAttribute('height', blockH);
-    r.setAttribute('rx', 12);
-    r.setAttribute('ry', 12);
-    r.setAttribute('fill', baseFill);
-    r.setAttribute('fill-opacity', '0.7');
-    r.setAttribute('stroke', baseStroke);
-    r.setAttribute('stroke-width', '4');
-    g.appendChild(r);
-  }
-
-  // EB 블록
-  const yEB = yBottom - blocks * blockH - (blocks - 1) * gap;
-  const ebRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  ebRect.setAttribute('id', 'svgLadderEB');
-  ebRect.setAttribute('x', x0);
-  ebRect.setAttribute('y', yEB);
-  ebRect.setAttribute('width', blockW);
-  ebRect.setAttribute('height', blockH);
-  ebRect.setAttribute('rx', 12);
-  ebRect.setAttribute('ry', 12);
-  ebRect.setAttribute('fill', baseFill);
-  ebRect.setAttribute('fill-opacity', '0.7');
-  ebRect.setAttribute('stroke', baseStroke);
-  ebRect.setAttribute('stroke-width', '4');
-  g.appendChild(ebRect);
-
-  svg.appendChild(g);
-}
-
-/** 속도/노치 숫자 업데이트 (기존과 동일) */
-function updateInstrumentHUD({ speed, notch }) {
-  const s = document.getElementById('svgSpeed');
-  const n = document.getElementById('svgNotch'); // 노치 텍스트를 나중에 추가할 수도 있음
-  if (s) s.textContent = String(Math.round(speed ?? 0));
-
-  if (n) {
-    const label = notch ?? '-';
-    n.textContent = label;
-    if (label === 'EB') n.setAttribute('fill', '#ff6b6b');
-    else if (label === 'N') n.setAttribute('fill', '#9effb5');
-    else if (label.startsWith('P')) n.setAttribute('fill', '#add8e6');
-    else n.setAttribute('fill', '#ed9a09');
-  }
-}
-
-/** 상태에 따라 mini ladder 색만 업데이트 */
-
-function updateInstrumentLadder(state) {
-  const ebIdx = getEbIndex();
-
-  const cur = Math.max(0, Math.min(ebIdx, state.lever_notch | 0));
-
-  const baseFill = '#3c5064';
-  const baseOp = '0.7';
-
-  // B1~B(n-1)
-  for (let k = 1; k <= ebIdx - 1; k++) {
-    const r = document.getElementById(`svgLadderB${k}`);
-    if (!r) continue;
-
-    if (cur !== ebIdx && k <= cur) {
-      r.setAttribute('fill', '#ffd34d');
-      r.setAttribute('fill-opacity', '1');
-    } else {
-      r.setAttribute('fill', baseFill);
-      r.setAttribute('fill-opacity', baseOp);
-    }
-  }
-
-  // EB
-  const ebRect = document.getElementById('svgLadderEB');
-  if (ebRect) {
-    if (cur === ebIdx) {
-      ebRect.setAttribute('fill', '#ff5757');
-      ebRect.setAttribute('fill-opacity', '1');
-    } else {
-      ebRect.setAttribute('fill', baseFill);
-      ebRect.setAttribute('fill-opacity', baseOp);
-    }
-  }
-}
-
-// 전역으로 노출
-try {
-  window.mountInstrumentSVG = mountInstrumentSVG;
-  window.updateInstrumentHUD = updateInstrumentHUD;
-  window.buildInstrumentLadder = buildInstrumentLadder;
-  window.updateInstrumentLadder = updateInstrumentLadder;
-} catch (e) {}
-
-
-botMask.appendChild(dash);
-mount.appendChild(topMask);
-mount.appendChild(botMask);
-try { mountInstrumentSVG(); } catch(e) { console.debug(e); }
-
-
-// 안전: 렌더러 캔버스가 프레임 아래 깔리도록
-try {
-    renderer.domElement.style.position = 'relative';
-    renderer.domElement.style.zIndex = '1';
-    topMask.style.zIndex = '5';
-    botMask.style.zIndex = '5';
-  } catch(e) {}
-})();
+window.updateInstrumentHUD = updateInstrumentHUD;
 
   function resize(){
     // If a runtime-forced fixed size exists, use it (we lock size without changing UI)
@@ -2486,7 +2321,7 @@ const trainName = window.st?.train_name ?? '';
 const lowerName = trainName.toLowerCase();
 
 const y = lowerName.includes('ktx')
-  ? 3.4
+  ? 3.1
   : (lowerName.includes('n700s') || lowerName.includes('e26'))
     ? 3.0
     : 2.7; //the rest
@@ -3135,7 +2970,7 @@ if (miniTimer) {
   else notchLabel = `B${st.lever_notch}`;
 
   updateInstrumentHUD({ speed: vKmh, notch: notchLabel });
-
+if (window.drawMiniBrakeLadder) window.drawMiniBrakeLadder(st);
   // 🔹 여기 한 줄 추가
   if (window.updateInstrumentLadder) {
     try { window.updateInstrumentLadder(st); } catch(e) {}
@@ -3894,30 +3729,9 @@ function loadVehicleFile(filePath){
       }
 
       
-      // 🔹 (1) 파일 이름 기준으로 계기판 타입 결정
-      const lowerPath = filePath.toLowerCase();
-      let layoutKey = 'default';
-      if (lowerPath.includes('ktx1')) {
-        layoutKey = 'ktx';
-      } else if (lowerPath.includes('n700s')) {
-        layoutKey = 'n700s';
-      }
-
-      // 🔹 (2) 레이아웃 적용 (이미지 + 속도텍스트 위치 + 라더 좌표)
-      try {
-        if (typeof setInstrumentLayout === 'function') {
-          setInstrumentLayout(layoutKey);
-        }
-      } catch (e) {
-        console.debug('apply instrument layout failed', e);
-      }
-
-      // 🔹 여기! 차량 notch 수에 맞춰 계기판 mini ladder 다시 생성
-      try {
-        if (window.buildInstrumentLadder) {
-          window.buildInstrumentLadder(vehicle.notches);
-        }
-      } catch (e) { console.debug(e); }
+// 🔹 (새) vehicle 파일 기준으로 cab 전체 오버레이 교체
+      const layoutKey = getCabLayoutKeyFromVehicle(filePath);
+      buildCabOverlay(layoutKey);
 
          try {
         const opt = trainSeriesEl.selectedOptions[0];
