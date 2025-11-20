@@ -1225,14 +1225,23 @@ const CAB_LAYOUTS = {
     src: "/static/photos/n700s_cab.png",
     size: { width: 1880, height: 1040 },
     windowPoly: [
+[
   [579, 0],
-[770, 520],
+[770, 522],
 [1203, 526],
 [1605, 535],
 [1880, 248],
 [1880, 0]
-
-  
+  ],
+  [
+  [5, 543],
+[137, 558],
+[409, 573],
+[530, 543],
+[710, 528],
+[470, 0],
+[5, 3]
+  ]
 
 
     ],
@@ -1268,7 +1277,6 @@ function getCabLayoutKeyFromVehicle(filePath) {
   return "default";
 }
 
-// 전역: 전체 cab 오버레이 생성
 function buildCabOverlay(layoutKey) {
   const mount = document.getElementById("cab3d");
   if (!mount) {
@@ -1276,7 +1284,7 @@ function buildCabOverlay(layoutKey) {
     return;
   }
 
-  // 기존 오버레이 제거
+  // Remove existing overlay
   let existing = document.getElementById("cabOverlayFull");
   if (existing) existing.remove();
 
@@ -1296,29 +1304,48 @@ function buildCabOverlay(layoutKey) {
   svg.setAttribute("height", "100%");
   svg.setAttribute("preserveAspectRatio", "xMidYMid slice");
 
-  // clipPath: 전체 사각형 - 창 poly
+  // --- clipPath Logic Updated for Multiple Polygons ---
   const defs = document.createElementNS(svgNS, "defs");
   const cp = document.createElementNS(svgNS, "clipPath");
   cp.setAttribute("id", "cabWindowClip");
   cp.setAttribute("clipPathUnits", "userSpaceOnUse");
 
   const path = document.createElementNS(svgNS, "path");
-  let d = `M0 0 H${CAB_W} V${CAB_H} H0 Z `; // 전체
-
-  d += "M";
-  windowPoly.forEach(([x, y], i) => {
-    d += (i === 0 ? `${x} ${y}` : ` L${x} ${y}`);
-  });
-  d += " Z";
   
+  // 1. Start with the full rectangular canvas
+  let d = `M0 0 H${CAB_W} V${CAB_H} H0 Z `; 
+
+  // 2. Normalize windowPoly to always be an array of polygons
+  // Check if the first element is a number (point [x,y]) or an array (polygon [[x,y]...])
+  let polygons = [];
+  if (windowPoly && windowPoly.length > 0) {
+    // If windowPoly[0][0] is a number, it's a single polygon like [[0,0], [10,10]]
+    // If windowPoly[0][0] is undefined or array, it's likely [[ [0,0]... ], [ [10,10]... ]]
+    const isSinglePoly = typeof windowPoly[0][0] === 'number';
+    polygons = isSinglePoly ? [windowPoly] : windowPoly;
+  }
+
+  // 3. Loop through every polygon and carve them out
+  polygons.forEach(poly => {
+    poly.forEach(([x, y], i) => {
+        // If it's the first point, Move (M), otherwise Line (L)
+        d += (i === 0 ? ` M${x} ${y}` : ` L${x} ${y}`);
+    });
+    d += " Z "; // Close this specific window hole
+  });
 
   path.setAttribute("d", d);
   path.setAttribute("fill", "black");
-  path.setAttribute("fill-rule", "evenodd");
+  
+  // 'evenodd' is crucial here: it allows multiple sub-paths to create holes in the main shape
+  path.setAttribute("fill-rule", "evenodd"); 
   path.setAttribute("clip-rule", "evenodd");
+  
   cp.appendChild(path);
   defs.appendChild(cp);
   svg.appendChild(defs);
+
+  // --- Rest of the function remains the same ---
 
   // cab PNG
   const img = document.createElementNS(svgNS, "image");
@@ -1330,7 +1357,7 @@ function buildCabOverlay(layoutKey) {
   img.setAttribute("clip-path", "url(#cabWindowClip)");
   svg.appendChild(img);
 
-  // 속도 텍스트
+  // Speed Text
   const spCfg = speedText || { x: CAB_W / 2, y: CAB_H / 2, fontSize: 80, letterSpacing: 8 };
   const speedTextNode = document.createElementNS(svgNS, "text");
   speedTextNode.setAttribute("id", "svgSpeed");
@@ -1347,84 +1374,79 @@ function buildCabOverlay(layoutKey) {
   svg.appendChild(speedTextNode);
 
   overlay.appendChild(svg);
-  
-// ----------------------------------------------------
-// 🔽 KTX / N700S 제외하고 mini brake ladder 추가하기
-// ----------------------------------------------------
 
-if (layoutKey !== "ktx" && layoutKey !== "n700s") {
+  // ----------------------------------------------------
+  // 🔽 KTX / N700S 제외하고 mini brake ladder 추가하기
+  // ----------------------------------------------------
+  if (layoutKey !== "ktx" && layoutKey !== "n700s") {
+    const ladderCanvas = document.createElement("canvas");
+    ladderCanvas.id = "miniLadderCanvas";
+    ladderCanvas.style.position = "absolute";
+    ladderCanvas.style.right = "1140px"; 
+    ladderCanvas.style.bottom = "29px"; 
+    ladderCanvas.style.width = "25px";
+    ladderCanvas.style.height = "110px";
+    ladderCanvas.style.pointerEvents = "none";
+    ladderCanvas.style.zIndex = "6";
 
-  // mini ladder용 오버레이 캔버스 만들기
-  const ladderCanvas = document.createElement("canvas");
-  ladderCanvas.id = "miniLadderCanvas";
-  ladderCanvas.style.position = "absolute";
-  ladderCanvas.style.right = "1140px"; // 원하는 위치 조정
-  ladderCanvas.style.bottom = "29px"; // PNG 계기판에서 ladder 위치로 맞출 수 있음
-  ladderCanvas.style.width = "25px";
-  ladderCanvas.style.height = "110px";
-  ladderCanvas.style.pointerEvents = "none";
-  ladderCanvas.style.zIndex = "6";
-
-  overlay.appendChild(ladderCanvas);
-
-  // 캔버스 실제 픽셀 크기 설정(DPR 대응)
-  const dpr = window.devicePixelRatio || 1;
-  ladderCanvas.width = 60 * dpr;
-  ladderCanvas.height = 180 * dpr;
-
-  // 🔧 mini ladder 그리는 함수 (기존 코드 재활용)
-  window.drawMiniBrakeLadder = function(st) {
-    const cvs = document.getElementById("miniLadderCanvas");
-    if (!cvs) return;
-    const ctx = cvs.getContext("2d");
-    const w = cvs.width;
-    const h = cvs.height;
-
-    ctx.clearRect(0, 0, w, h);
+    overlay.appendChild(ladderCanvas);
 
     const dpr = window.devicePixelRatio || 1;
-    const notches = vehicle?.notches ?? 10;
-    const ebIdx = notches - 1;
-    const blocks = ebIdx;
-    const cur = Math.max(0, Math.min(ebIdx, st.lever_notch | 0));
+    ladderCanvas.width = 60 * dpr;
+    ladderCanvas.height = 180 * dpr;
 
-    const pad = 6 * dpr;
-    const gap = 6 * dpr;
-    const bW = w - pad * 2;
-    const bH = (h - pad * 2 - gap * (blocks - 1)) / blocks;
+    window.drawMiniBrakeLadder = function(st) {
+      const cvs = document.getElementById("miniLadderCanvas");
+      if (!cvs) return;
+      const ctx = cvs.getContext("2d");
+      const w = cvs.width;
+      const h = cvs.height;
 
-    for (let k = 1; k <= ebIdx - 1; k++) {
-      const i = k - 1;
-      const y = h - pad - (i + 1) * bH - i * gap;
+      ctx.clearRect(0, 0, w, h);
 
-      ctx.fillStyle = "rgba(60,80,100,0.35)";
-      ctx.fillRect(pad, y, bW, bH);
+      const dpr = window.devicePixelRatio || 1;
+      const notches = vehicle?.notches ?? 10;
+      const ebIdx = notches - 1;
+      const blocks = ebIdx;
+      const cur = Math.max(0, Math.min(ebIdx, st.lever_notch | 0));
 
-      if (cur !== ebIdx && k <= cur) {
-        ctx.fillStyle = "#ffd34d";
+      const pad = 6 * dpr;
+      const gap = 6 * dpr;
+      const bW = w - pad * 2;
+      const bH = (h - pad * 2 - gap * (blocks - 1)) / blocks;
+
+      for (let k = 1; k <= ebIdx - 1; k++) {
+        const i = k - 1;
+        const y = h - pad - (i + 1) * bH - i * gap;
+
+        ctx.fillStyle = "rgba(60,80,100,0.35)";
         ctx.fillRect(pad, y, bW, bH);
+
+        if (cur !== ebIdx && k <= cur) {
+          ctx.fillStyle = "#ffd34d";
+          ctx.fillRect(pad, y, bW, bH);
+        }
+
+        ctx.strokeStyle = "rgba(20,30,45,0.6)";
+        ctx.lineWidth = 2 * dpr;
+        ctx.strokeRect(pad, y, bW, bH);
+      }
+
+      // EB block
+      const yEB = h - pad - blocks * bH - (blocks - 1) * gap;
+      ctx.fillStyle = "rgba(60,80,100,0.35)";
+      ctx.fillRect(pad, yEB, bW, bH);
+
+      if (cur === ebIdx) {
+        ctx.fillStyle = "#ff5757";
+        ctx.fillRect(pad, yEB, bW, bH);
       }
 
       ctx.strokeStyle = "rgba(20,30,45,0.6)";
       ctx.lineWidth = 2 * dpr;
-      ctx.strokeRect(pad, y, bW, bH);
-    }
-
-    // EB block
-    const yEB = h - pad - blocks * bH - (blocks - 1) * gap;
-    ctx.fillStyle = "rgba(60,80,100,0.35)";
-    ctx.fillRect(pad, yEB, bW, bH);
-
-    if (cur === ebIdx) {
-      ctx.fillStyle = "#ff5757";
-      ctx.fillRect(pad, yEB, bW, bH);
-    }
-
-    ctx.strokeStyle = "rgba(20,30,45,0.6)";
-    ctx.lineWidth = 2 * dpr;
-    ctx.strokeRect(pad, yEB, bW, bH);
-  };
-}
+      ctx.strokeRect(pad, yEB, bW, bH);
+    };
+  }
 }
 
 // 속도 숫자 업데이트 (ws.onmessage에서 사용)
