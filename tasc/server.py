@@ -1167,7 +1167,7 @@ class StoppingSim:
             else:
                 score -= 100
                 st.issues["stop_not_b1"] = True
-                st.issues["stop_not_b1_msg"] = "정차 시 B2 이상으로 정차함 - 승차감 불쾌"
+                st.issues["stop_not_b1_msg"] = "정차 시 B3 이상으로 정차함 - 승차감 불쾌"
 
             if self.is_stair_pattern(self.notch_history):
                 score += 500
