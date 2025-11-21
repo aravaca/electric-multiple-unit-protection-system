@@ -1715,7 +1715,12 @@ const scene = new THREE.Scene();
   // use actual mount size for correct aspect ratio so canvas fills its container
   const initialW = mount.clientWidth || Math.max(800, window.innerWidth);
   const initialH = mount.clientHeight || Math.max(450, Math.round(initialW * 9/16));
-  const camera = new THREE.PerspectiveCamera(45, initialW / initialH, 0.1, 300);
+ const camera = new THREE.PerspectiveCamera(
+  45,           // FOV (Field of View): 45도 (자연스러운 시야, 전방과 주변을 잘 볼 수 있도록 설정)
+  initialW / initialH, // 종횡비 (화면의 너비와 높이 비율)
+  0.1,          // Near plane: 0.1 (카메라가 볼 수 있는 가장 가까운 거리)
+  500          // Far plane: 300 (카메라가 볼 수 있는 가장 먼 거리, 전철 시뮬에서는 충분히 먼 거리)
+);
 
   
 // 🚂 기관사 시점 헤드라이트 (카메라에 붙는 스포트라이트)
@@ -1904,30 +1909,23 @@ function createTrackCanvasTexture() {
   c.fillStyle = '#6b6b5f';
   c.fillRect(0, 0, tileW, tileH);
 
-  // (침목 제거됨)
-  // 여기서 sleepers 관련 루프를 완전히 삭제함
-
-  // optional: 레일 그리기 (있다면 아래 추가)
-  // c.fillStyle = '#bbb';
-  // c.fillRect(...)
-
     // draw two metallic rails centered
     const railCenterX = tileW/2;
     const railOffset = 120; // pixel offset from center
-    function drawRail(cx){
-      // base dark strip
-      c.fillStyle = '#2a2a2a';
-      c.fillRect(cx-6, tileH*0.2, 12, tileH*0.6);
-      // highlight
-      const grad = c.createLinearGradient(cx-6,0,cx+6,0);
-      grad.addColorStop(0, 'rgba(255,255,255,0.10)');
-      grad.addColorStop(0.5, 'rgba(255,255,255,0.35)');
-      grad.addColorStop(1, 'rgba(255,255,255,0.10)');
-      c.fillStyle = grad;
-      c.fillRect(cx-2, tileH*0.25, 4, tileH*0.5);
-    }
-    drawRail(railCenterX - railOffset);
-    drawRail(railCenterX + railOffset);
+    // function drawRail(cx){
+    //   // base dark strip
+    //   // c.fillStyle = '#2a2a2a';
+    //   // c.fillRect(cx-6, tileH*0.2, 12, tileH*0.6);
+    //   // highlight
+    //   const grad = c.createLinearGradient(cx-6,0,cx+6,0);
+    //   grad.addColorStop(0, 'rgba(255,255,255,0.10)');
+    //   grad.addColorStop(0.5, 'rgba(255,255,255,0.35)');
+    //   grad.addColorStop(1, 'rgba(255,255,255,0.10)');
+    //   c.fillStyle = grad;
+    //   c.fillRect(cx-2, tileH*0.25, 4, tileH*0.5);
+    // }
+    // drawRail(railCenterX - railOffset);
+    // drawRail(railCenterX + railOffset);
 
     // subtle grime overlay
     c.fillStyle = 'rgba(10,10,12,0.05)';
@@ -2020,7 +2018,7 @@ function createTrackCanvasTexture() {
 
   // --- 플랫폼 (정차벽 기준 -platformLen ~ 0m, 오른쪽에 배치) ---
 const platformLen = 210; // 플랫폼 길이
-const platH = 1.13; // 플랫폼 높이 (1.13m로 설정)
+const platH = 1; // 플랫폼 높이 (1.13m로 설정)
 const platW = 3.0; // 플랫폼 폭
 const platZ = 0 + 200; // 세계좌표 보정 (ground/rail과 일치)
 
