@@ -147,14 +147,24 @@ html, body {
   background-attachment: fixed;
   color: #e7f0ff;
   font-family: 'Orbitron', system-ui, Segoe UI, Roboto, Apple SD Gothic Neo, AppleGothic, sans-serif;
+    -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.html::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+}
+.body::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
 }
 .game-background,.snow-background,.rain-background{background:transparent!important}
 #wrap{max-width:960px;margin:18px auto;padding:0 12px}
 .row{display:flex;gap:12px;align-items:center}
 .card{
   background:rgba(18,24,38,.7);border:1px solid rgba(0,246,255,.15);border-radius:16px;padding:16px;
-  backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .2s,box-shadow .2s
+  backdrop-filter:blur(10px);box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .2s,box-shadow .2s;
 }
+
 .card:hover{transform:translateY(-2px);box-shadow:0 12px 28px rgba(0,0,0,.7)}
 canvas{width:100%;height:320px;background:linear-gradient(#0b0f14,#0a1019);}
 .kbd{background:rgba(10,18,28,.8);border:1px solid #2b3f5f;color:#9fc5ff;padding:2px 6px;border-radius:6px;font-size:12px}
@@ -1134,6 +1144,7 @@ body {
             <option value="N700S">신칸센 N700S계</option> 
             <option value="100000">한국철도공사 100000호대 전동차</option> 
             <option value="EF510">EF510형 전기기관차 + E26계 객차</option> 
+            <option value="GE999">초차원기관 보일러 GR-0999-SV</option> 
           </select>
         </label>
 
@@ -1198,7 +1209,7 @@ body {
       <aside class="overlay-preview" aria-label="Selected train preview">
         <div class="preview-image-frame">
           <!-- 기본 썸네일 (초기값) – JS에서 trainSeries 선택 시 교체 -->
-          <img id="trainPreviewImg" src="/static/photos/e233_1000.png" alt="Train preview">
+          <img id="trainPreviewImg" src="/static/e233_1000.png" alt="Train preview">
         </div>
 
         <div class="preview-title" id="trainPreviewName">
@@ -1340,7 +1351,7 @@ const CAB_LAYOUTS = {
 function getCabLayoutKeyFromVehicle(filePath) {
   const lower = (filePath || "").toLowerCase();
   if (lower.includes("n700s")) return "n700s";
-  if (lower.includes("ktx1")) return "ktx";
+  if (lower.includes("ktx") || lower.includes("999")) return "ktx";
   // TODO: 다른 열차도 필요하면 여기에 추가
   return "default";
 }
@@ -2400,7 +2411,7 @@ function syncCameraFromState() {
 const trainName = window.st?.train_name ?? '';
 const lowerName = trainName.toLowerCase();
 
-const y = lowerName.includes('ktx')
+const y = (lowerName.includes('ktx') || lowerName.includes('999'))
   ? 3.1
   : (lowerName.includes('n700s') || lowerName.includes('e26'))
     ? 3.0
@@ -2409,11 +2420,12 @@ const y = lowerName.includes('ktx')
   
 const z = 200 - rem;
 
-const angle = lowerName.includes('ktx')
+const angle = (lowerName.includes('ktx') || lowerName.includes('999'))
   ? 0.5
   : (lowerName.includes('n700s'))
     ? 0.6
     : 0.8; //the rest
+
 
 // 카메라를 살짝 왼쪽으로 이동시키고, 살짝 아래쪽을 바라보게 설정
 const xOffset = 0.9;  // 카메라를 왼쪽으로 1.5 단위 이동
@@ -2943,8 +2955,8 @@ addEventListener("keydown", (e) => {
 /* ===== HUD & 상태 ===== */
 const grade_percentEl=document.getElementById("grade_percent");
 let isFinished=false, overlayShowingResult=false, st=null, lastTimestamp=0, prevMaxDistance=0;
-function loop(ts){ if(!lastTimestamp) lastTimestamp=ts; lastTimestamp=ts; if(st) drawHUD(st); requestAnimationFrame(loop); }
-requestAnimationFrame(loop);
+// function loop(ts){ if(!lastTimestamp) lastTimestamp=ts; lastTimestamp=ts; if(st) drawHUD(st); requestAnimationFrame(loop); }
+// requestAnimationFrame(loop);
 
 function formatTimeSec(secInt) {
   const sign = secInt < 0 ? "+" : "";
@@ -3657,6 +3669,12 @@ N700S: [{
   lines: "경부고속철도·호남고속철도",
   file: "/static/ktx1.json",
   lengths: [20]
+}],
+GE999: [{
+  code: "대은하본선(大銀河本線) 은하\"초\"특급(銀河超特急) 999",
+  lines: "지구(地球) → 안드로메다(アンドロメダ)",
+  file: "/static/galaxy999.json",
+  lengths: [11]
 }]
 
 };
