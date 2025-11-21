@@ -2545,7 +2545,13 @@ try {
   if (isSeoulTrain) {
     desiredSrc = "/static/audio/nambu.mp3";
   } else if (isKtxTrain) {
-    desiredSrc = "/static/audio/seoul.mp3";
+    // 0 또는 1을 랜덤 생성
+    const random = Math.random() < 0.5;   // 50% 확률
+
+    desiredSrc = random 
+      ? "/static/audio/seoul.mp3"
+      : "/static/audio/busan.mp3";
+
   } else if (isN700sTrain) {
     desiredSrc = "/static/audio/shinosaka.mp3"; // ← N700S 전용 음원
   } else {
