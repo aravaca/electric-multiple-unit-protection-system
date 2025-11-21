@@ -21,7 +21,7 @@
   position: absolute;
   top: 10px;
   right: 10px;
-  min-width: 100px;
+  min-width: 160px;
   padding: 8px 10px;
   border-radius: 12px;
   background:
@@ -36,16 +36,17 @@
   pointer-events: none; /* 조작 방해 안 하도록 */
   z-index: 6;
   text-align: right;
-  line-height: 1.6;
+  line-height: 2.0;
 }
 
 .mini-hud-header {
+  font-family: 'A-OTF Shin Go Pro', sans-serif; font-style: normal; font-weight: 700; 
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 4px;
   opacity: .9;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: .06em;
   text-transform: uppercase;
 }
@@ -75,13 +76,13 @@
 
 .mini-label {
   text-align: left;
-  font-size: 9px;
+  font-size: 10px;
   opacity: .75;
 }
 
 .mini-value {
   text-align: right;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -95,7 +96,11 @@
 }
 
 .mini-row.timer .mini-value {
-  font-size: 13px;
+  font-size: 14px;
+}
+
+.mini-row.grade .mini-value {
+  font-size: 14px;
 }
 
 .mini-row.timer .min,
@@ -657,6 +662,29 @@ body {
   -webkit-touch-callout: none;
 }
 
+
+/* === 3D 캔버스 안에 붙는 작은 브레이크 곡선 HUD === */
+#cab3d #hud {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  width: 360px !important;
+  height: 200px !important;
+  background:
+    radial-gradient(circle at 0 0, rgba(0,246,255,.18), transparent 60%),
+    rgba(5,10,18,.92);
+  border-radius: 12px;
+  border: 1px solid rgba(0,246,255,.45);
+  box-shadow: 0 10px 26px rgba(0,0,0,.85);
+  pointer-events: none; /* 조작은 3D 캔버스로 그대로 */
+  z-index: 7; /* cabOverlayFull(5) + miniHud(6) 보다 위 */
+}
+
+/* B 키로 숨길 때 사용하는 클래스 */
+#cab3d #hud.hud-hidden {
+  display: none !important;
+}
+
 #cab3d {
   position: relative; /* three.js 캔버스 기준점 */
 }
@@ -894,42 +922,44 @@ body {
   <div id="cab3d" style="background:#000;overflow:hidden">
   <!-- 🔹 3D 오른쪽 위 미니 HUD -->
   <div id="miniHud" class="mini-hud">
-    <div class="mini-hud-header">
-      <span>RUN STATUS</span>
-      <span class="mini-hud-dot"></span>
-    </div>
+<div class="mini-hud-header">
+  <span id="miniHudTitle">RUN STATUS</span>
+  <span class="mini-hud-dot"></span>
+</div>
     <div class="mini-hud-rows">
       <div class="mini-row timer">
-        <span class="mini-label">TIME</span>
+        <span class="mini-label">Time Remaining</span>
         <span class="mini-value" id="miniTimer">
-          <span class="min">00</span><span class="sep">:</span><span class="sec">00</span>
+          <span class="min">00</span>
+          <span class="sep">:</span><span class="sec">00</span>
         </span>
       </div>
 
       <div class="mini-row">
-        <span class="mini-label">SPD (km/h)</span>
+        <span class="mini-label">Speed (km/h)</span>
         <span class="mini-value" id="miniSpeed">—</span>
       </div>
 
       <div class="mini-row">
-        <span class="mini-label">DIST</span>
+        <span class="mini-label">Distance</span>
         <span class="mini-value" id="miniRemain">—</span>
       </div>
 
-      <div class="mini-row">
-        <span class="mini-label">GRADE (‰)</span>
+      <div class="mini-row grade">
+        <span class="mini-label">Grade (‰)</span>
         <span class="mini-value" id="miniGrade">—</span>
       </div>
 
       <div class="mini-row">
-        <span class="mini-label">NOTCH</span>
+        <span class="mini-label">Notch</span>
         <span class="mini-value" id="miniNotch">-</span>
       </div>
     </div>
   </div>
 
 
-<!-- <div class="card" style="flex:2 1 520px"><canvas id="hud"></canvas></div> -->
+    <!-- 🔹 3D 오른쪽 아래 브레이크 곡선 HUD -->
+    <canvas id="hud"></canvas>
 
 </div>
 
@@ -988,7 +1018,7 @@ body {
       정차 후 아래 화면에서 피드백을 확인하세요.
     </div> -->
 
-<div class="card" style="flex:1 1 260px; position: relative">
+<div class="card" style="flex:1 1 260px; position: relative; display: none;">
     
   <div id="carName" style="font-size:20px; font-family: 'A-OTF Shin Go Pro', sans-serif; font-style: normal;" class="stat">차량 로딩 중...</div>
 
@@ -1030,7 +1060,7 @@ body {
   <!-- 큰 우측 리본: 페이지 오른쪽에 고정되어 HUD의 리본/다이아몬드를 더 크게 표시합니다 -->
 </div>
 
-<div class="card" style="flex:2 1 520px"><canvas id="hud"></canvas></div>
+<!-- <div class="card" style="flex:2 1 520px"><canvas id="hud"></canvas></div> -->
 <div class="card" style="flex:1 1 240px"><div><b>피드백</b></div><div id="fb">Space로 시작. W/S로 브레이크 조절하세요.</div></div>
 </div>
 </div>
@@ -1580,6 +1610,7 @@ const miniTimer = document.getElementById("miniTimer"),
       miniRemain = document.getElementById("miniRemain"),
       miniGrade = document.getElementById("miniGrade"),
       miniNotch = document.getElementById("miniNotch");
+      miniTitle = document.getElementById("miniHudTitle");
 const overlay=document.getElementById("overlay"),
       btnStart=document.getElementById("btnStart"),
       canvas=document.getElementById("hud"),
@@ -2838,19 +2869,34 @@ addEventListener("keydown", (e) => {
     }
   }
   else if (e.key === "b" || e.key === "B") {
-  window.__brakeGuideOn = !window.__brakeGuideOn;
+    // 1) 그래프 그릴지 여부 (기존 기능 유지)
+    window.__brakeGuideOn = !window.__brakeGuideOn;
 
-  // 선택: 간단 피드백
-  if (fb) {
-    const msg = window.__brakeGuideOn
-      ? "제동 가이드: ON (B로 토글)"
-      : "제동 가이드: OFF (B로 토글)";
-    fb.innerHTML = `<div class="warn">${msg}</div>`;
-    setTimeout(() => {
-      if (!st || !st.finished) fb.textContent = "Space로 시작. W/S로 브레이크 조절하세요.";
-    }, 1200);
+    // 2) HUD 캔버스 자체를 숨기기/보이기
+    const hudCanvas = document.getElementById("hud");
+    if (hudCanvas) {
+      const hidden = hudCanvas.classList.toggle("hud-hidden");
+      // 다시 켜질 때 한 번 사이즈/그림 리프레시
+      if (!hidden) {
+        try {
+          if (typeof resize === "function") resize();
+          if (st) drawHUD(st);
+        } catch (e) {}
+      }
+    }
+
+    // 3) 간단 피드백 텍스트
+    if (fb) {
+      const msg = (!hudCanvas || !hudCanvas.classList.contains("hud-hidden"))
+        ? "제동곡선 HUD: ON (B로 토글)"
+        : "제동곡선 HUD: OFF (B로 토글)";
+      fb.innerHTML = `<div class="warn">${msg}</div>`;
+      setTimeout(() => {
+        if (!st || !st.finished) fb.textContent = "Space로 시작. W/S로 브레이크 조절하세요.";
+      }, 1200);
+    }
   }
-}
+
 
 });
 
@@ -2877,6 +2923,10 @@ ws.onmessage = (ev) => {
   // 상태 저장
   st = msg.payload;
   window.st = st;
+  // 🔹 서버 상태에 train_name이 있으면 mini HUD 타이틀을 그걸로 사용
+  if (st.train_name && miniTitle) {
+    miniTitle.textContent = st.train_name;
+  }
 
   // st, window.st 세팅 직후에 추가
 if (!document.getElementById('svgSpeed')) {
@@ -3105,49 +3155,6 @@ const isClear = (weatherSelect?.value === "맑음");
 
   // PC/모바일 판별
   const isMobile = window.innerWidth < 768; 
-
-  // 보정값 설정 (원하는 값으로 수정 가능)
-  // -32 -14
-  const offsetRibbonY = isMobile ? -32 : -12; 
-  const offsetCenterY = isMobile ? -14 : -5; 
-
-  // 리본 위치/크기 계산
-  const ribbonW = 16 * dpr, 
-        ribbonH = h * .9, 
-        ribbonX = w - right - ribbonW - 10 * dpr + 20, 
-        ribbonY = ((h - ribbonH) / 2) + offsetRibbonY;
-
-  ctx.fillStyle = "rgba(100,100,100,.1)";
-  ctx.strokeStyle = "rgba(100,100,100,.3)";
-  ctx.lineWidth = 1.5 * dpr;
-  ctx.beginPath();
-  ctx.rect(ribbonX, ribbonY, ribbonW, ribbonH);
-  ctx.fill();
-  ctx.stroke();
-
-  // 중앙 바
-  const centerY = (ribbonY + ribbonH / 2) + offsetCenterY, 
-        barH = 12 * dpr;
-
-  ctx.fillStyle = diamondFill;
-  ctx.fillRect(ribbonX + 2 * dpr, centerY - barH / 2, ribbonW - 4 * dpr, barH);
-
-  const rem=Math.min(Math.max(st.remaining_m??st.L,-st.L), st.L);
-  const diamondW=16*dpr, diamondH=10*dpr, dX=ribbonX+ribbonW/2;
-  const normalized=(rem-(-5))/(5-(-5));
-  const dY=ribbonY+(ribbonH*(1-normalized))-diamondH/2;
-  const adjY=Math.min(Math.max(dY, ribbonY-10*dpr), ribbonY+ribbonH-diamondH+10*dpr);
-
-  ctx.fillStyle=diamondFill; ctx.strokeStyle=diamondStroke; 
-
-  ctx.lineWidth=2*dpr; ctx.beginPath();
-  ctx.moveTo(dX, adjY-diamondH/2); 
-  ctx.lineTo(dX+diamondW/2, adjY); 
-  ctx.lineTo(dX, adjY+diamondH/2);
-  ctx.lineTo(dX-diamondW/2, adjY);
-  ctx.closePath(); 
-  ctx.fill(); 
-  ctx.stroke();
   // also draw the large right-side ribbon (fixed canvas)
   try{ if(typeof drawRightRibbon === 'function') drawRightRibbon(st); }catch(e){}
 
@@ -3756,6 +3763,10 @@ function loadVehicleFile(filePath){
       vehicle.notches = (vehicle.notch_accels || []).length;
       document.getElementById('carName').textContent = vehicle.name;
 
+            // 🔹 mini HUD 헤더도 차량 이름으로 갱신
+      if (miniTitle) {
+        miniTitle.textContent = vehicle.name || "RUN";
+      }
       brakeDecels = {};
       if (vehicle.notch_accels && vehicle.notches) {
         for (let i = 0; i < vehicle.notches; i++) {
