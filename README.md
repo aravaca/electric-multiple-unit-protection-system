@@ -5,6 +5,8 @@
 ---
 <img width="1456" height="763" alt="a" src="https://github.com/user-attachments/assets/5e59b9bd-435f-40ae-966d-7077c6e64e5a" />
 <img width="1472" height="769" alt="b" src="https://github.com/user-attachments/assets/2afecde8-b4c3-490b-8e6d-5736c79b5865" />
+<img width="1466" height="756" alt="e1" src="https://github.com/user-attachments/assets/ba73debc-bf24-4ae4-ab7d-b23be708bb84" />
+<img width="1920" height="1080" alt="e2" src="https://github.com/user-attachments/assets/b61ccd2d-7faa-47cb-9e75-e617e28d4259" />
 <img width="980" height="265" alt="feedback" src="https://github.com/user-attachments/assets/b523694b-a208-4161-b031-6abb18f66f38" />
 
 A lightweight **web-based railway simulation framework** replicating key control functions of **JR East/West EMUs**.  
@@ -73,6 +75,7 @@ Copyright © 2025 Hyungsuk Choi, University of Maryland
 Permission is hereby granted to use and modify this software for personal or internal purposes only.  
 Redistribution, reproduction, resale, public posting, or sharing of this software or any modified versions  
 is strictly prohibited without the express written permission of the author.
+
 
 
 
