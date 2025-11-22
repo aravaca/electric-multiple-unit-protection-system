@@ -3027,12 +3027,12 @@ function pickWeather(){
 /** 입력칸을 무작위로 채우고 change 이벤트를 발생시켜 UI/검증을 동기화 */
 function randomizeInputs(){
   // 1) 속도
-  const v = randInt(60, 120);
+  const v = randInt(70, 110);
   inputSpeed.value = String(v);
 
   // 2) 거리: 속도별 최소거리 규칙 준수 (기존 함수 재사용)
-  const minD = Math.max(500, minDistForSpeed(v));
-  const d = randInt(minD, 600);
+  const minD = Math.max(650, minDistForSpeed(v));
+  const d = randInt(minD, 750);
   inputDist.value = String(d);
 
   // 3) 구배(‰)
