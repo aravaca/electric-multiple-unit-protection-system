@@ -12,6 +12,74 @@
 <style>
 @import url('https://fonts.cdnfonts.com/css/a-otf-shin-go-pro');
 
+/* === 장애물 이벤트 팝업 === */
+.obstacle-popup {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 10006;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(12px);
+}
+
+.obstacle-popup.visible {
+  display: flex;
+}
+
+.obstacle-card {
+  min-width: 260px;
+  max-width: 420px;
+  padding: 18px 20px;
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0,0,0,0.85);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+/* 빨간 경고 */
+.obstacle-card.obstacle-danger {
+  background:
+    radial-gradient(circle at 0 0, rgba(255,94,94,0.28), transparent 60%),
+    rgba(20,6,10,0.98);
+  border-color: rgba(255,120,120,0.9);
+}
+
+/* 초록 정상 */
+.obstacle-card.obstacle-success {
+  background:
+    radial-gradient(circle at 0 0, rgba(80,255,170,0.24), transparent 60%),
+    rgba(6,24,14,0.98);
+  border-color: rgba(100,255,180,0.9);
+}
+
+.obstacle-title {
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.obstacle-card.obstacle-danger .obstacle-title {
+  color: #ffb3b3;
+}
+
+.obstacle-card.obstacle-success .obstacle-title {
+  color: #b6ffce;
+}
+
+.obstacle-body {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: #dde6ff;
+}
+
+.obstacle-hint {
+  font-size: 0.78rem;
+  color: #9fb6d6;
+  text-align: right;
+}
 .unit {
   font-size: 0.7em;      /* 글자 크기 줄이기 */
   display: inline-block; /* transform 적용하려면 필요 */
@@ -934,6 +1002,109 @@ body {
 </style>
 
 <script>
+
+
+
+// 🔴🟢 선로 장애물 상태 관리
+let hazardInfo = {
+  active: false, // 이번 런에서 장애물 존재 여부
+  dist: null, // 장애물 위치 (remaining_m 기준)
+  handled: false, // 성공/실패 이벤트 이미 처리했는지
+  timeoutId: null // 5초 후 제거 타이머
+};
+
+// 팝업 DOM 캐시
+let obstacleFailPopup = null;
+let obstacleSuccessPopup = null;
+
+// DOM 준비되면 캐시
+window.addEventListener("DOMContentLoaded", () => {
+  obstacleFailPopup = document.getElementById("obstacleFailPopup");
+  obstacleSuccessPopup = document.getElementById("obstacleSuccessPopup");
+
+  // 클릭으로도 닫기(밖 영역 클릭 시)
+  [obstacleFailPopup, obstacleSuccessPopup].forEach(p => {
+    if (!p) return;
+    p.addEventListener("click", (ev) => {
+      if (ev.target === p) hideObstaclePopups();
+    });
+  });
+});
+
+function anyObstaclePopupVisible() {
+  return (obstacleFailPopup && obstacleFailPopup.classList.contains("visible")) ||
+         (obstacleSuccessPopup && obstacleSuccessPopup.classList.contains("visible"));
+}
+
+function hideObstaclePopups() {
+  if (obstacleFailPopup) obstacleFailPopup.classList.remove("visible");
+  if (obstacleSuccessPopup) obstacleSuccessPopup.classList.remove("visible");
+
+  // ✅ 이 시점에서 이번 장애물 시나리오는 완전히 끝난 것으로 간주
+  if (window.hazardInfo) {
+    hazardInfo.handled = true; // 다시는 같은 장애물로 이벤트 안 뜸
+    hazardInfo.active = false;
+    if (hazardInfo.timeoutId) {
+      clearTimeout(hazardInfo.timeoutId);
+      hazardInfo.timeoutId = null;
+    }
+  }
+
+  // 🔧 장애물 메쉬도 바로 지우기 (굳이 화면에 더 두고 싶지 않으면)
+  try {
+    if (typeof clearEmergencyObstacle === "function") {
+      clearEmergencyObstacle();
+    }
+  } catch (e) {}
+}
+
+function showObstacleWarning() {
+  if (obstacleFailPopup) obstacleFailPopup.classList.add("visible");
+}
+
+function showObstacleSuccess() {
+  if (obstacleSuccessPopup) obstacleSuccessPopup.classList.add("visible");
+}
+
+// 5초 뒤 장애물 삭제 스케줄
+function scheduleObstacleClear() {
+  if (hazardInfo.timeoutId) return;
+  hazardInfo.timeoutId = setTimeout(() => {
+    try {
+      clearEmergencyObstacle();
+    } catch (e) {}
+    hazardInfo.active = false;
+    hazardInfo.dist = null;
+    hazardInfo.timeoutId = null;
+  }, 5000);
+}
+
+// 상태(State) 들어올 때마다 호출해서 이벤트 판단
+function handleObstacleState(st) {
+  if (!hazardInfo.active || hazardInfo.handled || !st) return;
+  const rem = Number(st.remaining_m ?? 0);
+  const speed = Number(st.v ?? 0); // m/s
+  const hazardDist = hazardInfo.dist;
+  if (hazardDist == null) return;
+
+  // ✅ 안전 정지 조건: 장애물 위치 기준 200m 이내에서 속도 0 근처
+  // rem: 정차 위치까지의 남은 거리
+  // hazardDist: 장애물 위치까지의 남은 거리
+  // → rem ∈ [hazardDist, hazardDist+200] & v≈0
+  if (rem >= hazardDist && rem <= hazardDist + 500 && speed < 0.1) {
+    hazardInfo.handled = true;
+    showObstacleSuccess();
+    scheduleObstacleClear();
+    return;
+  }
+
+  // ❌ 충돌 조건: 장애물 위치를 지나쳐버림 (rem < hazardDist)
+  if (rem < hazardDist) {
+    hazardInfo.handled = true;
+    showObstacleWarning();
+    scheduleObstacleClear();
+  }
+}
 /* Defensive runtime enforcement to override any inline width:50% */
 (function(){
   const cab = document.getElementById('cab3d');
@@ -1947,19 +2118,19 @@ const personHeight = 1.7;
 const personWidth = 0.45; // 비율은 PNG에 맞게 조정
 const personGeo = new THREE.PlaneGeometry(personWidth, personHeight);
 
+
 // --- 비상 장애물(바위/불) 관리용 --- 
 let emergencyObstacle = null; // 메쉬(바위 또는 불)
 let emergencyObstacleLight = null; // 불일 때만 쓰는 포인트 라이트
 
 // 필요하면 텍스처 사용 (없으면 일단 주석만 두고 단색으로도 가능)
 const fireTex = texLoader.load("/static/textures/fall.png");
-fireTex.colorSpace = THREE.SRGBColorSpace;  // 최신 three.js 방식
+fireTex.colorSpace = THREE.SRGBColorSpace; // 최신 three.js 방식
 fireTex.transparent = true;
 
 function clearEmergencyObstacle() {
   if (emergencyObstacle) {
     scene.remove(emergencyObstacle);
-    // geometry만 정리 (material은 재사용 가능하면 안지워도 됨)
     if (emergencyObstacle.geometry) emergencyObstacle.geometry.dispose();
     emergencyObstacle = null;
   }
@@ -1967,74 +2138,89 @@ function clearEmergencyObstacle() {
     scene.remove(emergencyObstacleLight);
     emergencyObstacleLight = null;
   }
+
+  // 🔄 장애물 상태 초기화
+  hazardInfo.active = false;
+  hazardInfo.dist = null;
+  hazardInfo.handled = false;
+  if (hazardInfo.timeoutId) {
+    clearTimeout(hazardInfo.timeoutId);
+    hazardInfo.timeoutId = null;
+  }
 }
 
-/**
- * 초기 남은거리(initialDist) 기준으로
- * - 10% 확률로
- * - 20m ~ initialDist 사이 어딘가에
- * - 바위 or 불 텍스처 장애물을 생성
- */
+
 function maybeSpawnEmergencyObstacle(initialDist) {
+  // 이전 장애물 깨끗이 정리
   clearEmergencyObstacle();
 
   // 조건 부족하면 생성 안 함
   if (!initialDist || initialDist <= 20) return;
 
-  // 10% 확률
+  // 🎲 40% 확률로만 장애물 생성
   if (Math.random() > 0.30) return;
 
-// 20m ~ 100m 사이 범위에서만 장애물 생성
-const minRange = 140;
-const maxRange = 210;
+  // 140m ~ 210m 사이에서만 장애물 위치 선택
+  const minRange = 140;
+  const maxRange = 210;
 
-// 실제 가능한 최대 거리 (초기 남은거리보다 클 수 없음)
-const usableMax = Math.min(initialDist, maxRange);
+  // 실제 가능한 최대 거리 (초기 남은거리보다 클 수 없음)
+  const usableMax = Math.min(initialDist, maxRange);
+  if (usableMax <= minRange) return;
 
-// 20m ~ usableMax 범위가 제대로 확보되지 않았다면 생성 안 함
-if (usableMax <= minRange) return;
+  // hazardDist: 정차 위치까지의 남은 거리(remaining_m) 기준 장애물 좌표
+  const hazardDist = minRange + Math.random() * (usableMax - minRange);
 
-const hazardDist = minRange + Math.random() * (usableMax - minRange);
+  // z좌표 변환: remaining_m → zWorld
+  const zWorld = 200 - hazardDist;
+  const xTrack = 0; // 중앙 선로 기준
 
-// z 좌표 변환
-const zWorld = 200 - hazardDist;
-const xTrack = 0; // 주행 선로 중앙 (카메라 x=0.9 근처라 잘 보임)
-
-// 텍스처 경로 배열
-const texturePaths = [
-  "/static/textures/fall.png",
-  "/static/textures/fall_woman.png",
-  "/static/textures/rock.png",
-  "/static/textures/fire.png",
-  "/static/textures/1000010930.png",
-  "/static/textures/1000010928.png",
-];
-
-// 랜덤 선택
-const randomPath = texturePaths[Math.floor(Math.random() * texturePaths.length)];
-
-// 로드
-const fireTex = texLoader.load(randomPath);
+  // 🧠 상태 저장 (이걸로 ws state에서 판정)
+  hazardInfo.active = true;
+  hazardInfo.dist = hazardDist;
+  hazardInfo.handled = false;
+  hazardInfo.timeoutId = null;
+  // 🔥 서버에 장애물 위치 알려주기
+if (ws.readyState === WebSocket.OPEN) {
+  ws.send(JSON.stringify({
+    type: "cmd",
+    payload: { name: "setHazard", dist: hazardDist }
+  }));
+}
 
 
+  // 텍스처 목록 중 하나 랜덤
+  const texturePaths = [
+    "/static/textures/fall.png",
+    "/static/textures/fall_woman.png",
+    "/static/textures/rock.png",
+    "/static/textures/fire.png",
+    "/static/textures/1000010930.png",
+    "/static/textures/1000010928.png",
+  ];
+  const randomPath = texturePaths[Math.floor(Math.random() * texturePaths.length)];
+  const tex = texLoader.load(randomPath);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.transparent = true;
 
-    // 불 텍스처 (카메라를 향하는 판자 + 포인트 라이트)
-    const geo = new THREE.PlaneGeometry(1.7, 1.7);
-    const mat = new THREE.MeshBasicMaterial({
-      map: fireTex,
-      transparent: true,
-      depthWrite: false
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-    // -1 ~ +1 사이 랜덤 오프셋
-const offset = (Math.random() * 2 - 1);  
+  // 장애물 메쉬 생성 (카메라 바라보는 billboard)
+  const geo = new THREE.PlaneGeometry(1.7, 1.7);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false
+  });
+  const mesh = new THREE.Mesh(geo, mat);
 
-mesh.position.set(xTrack + offset, 0.9, zWorld);
+  // 좌우로 살짝 랜덤 오프셋 줘서 너무 정중앙만 나오지 않게
+  const offsetX = (Math.random() * 2 - 1); // -1 ~ +1
+  mesh.position.set(xTrack + offsetX, 0.9, zWorld);
 
-    mesh.userData.type = "fire";
-    mesh.userData.billboard = true; // 렌더 루프에서 카메라 쪽을 보게 쓰는 플래그
-    emergencyObstacle = mesh;
-    scene.add(mesh);  
+  mesh.userData.type = "hazard";
+  mesh.userData.billboard = true;
+
+  emergencyObstacle = mesh;
+  scene.add(mesh);
 }
 
 // startRun()에서 호출할 수 있도록 전역에 노출
@@ -3143,9 +3329,15 @@ addEventListener("keydown", (e) => {
   if([" ","w","W","s","S","n","N","e","E","d","D", "a", "A", 'q', 'Q'].includes(e.key)) e.preventDefault();
   if(e.repeat) return;
 
-  if(e.key === " "){ 
-    if(ws.readyState !== WebSocket.OPEN) return; 
-    startRun(); 
+  if (e.key === " ") {
+    // 🔁 팝업이 떠있으면 먼저 닫기만 하고, 게임은 재시작하지 않음
+    if (anyObstaclePopupVisible()) {
+      hideObstaclePopups();
+      return;
+    }
+
+    if (ws.readyState !== WebSocket.OPEN) return;
+    startRun();
   }
   else if(e.key === "w" || e.key === "W"){ 
     sendCmd("applyNotch", +1); 
@@ -3228,6 +3420,8 @@ ws.onmessage = (ev) => {
   // 상태 저장
   st = msg.payload;
   window.st = st;
+    // 🔥 장애물 관련 이벤트 판정
+  handleObstacleState(st);
   // 🔹 서버 상태에 train_name이 있으면 mini HUD 타이틀을 그걸로 사용
   if (st.train_name && miniTitle) {
     miniTitle.textContent = st.train_name;
@@ -4248,7 +4442,7 @@ window.__brakeGuideOn = true;
         step_good: "기본제동 (계단제동/완해) 수행함",
         step_bad: "기본제동 (계단제동/완해) 미흡 — 불규칙한 제동 패턴으로 인한 승차감 불쾌",
         eb_good: "영업 안전 제동범위 준수",
-        eb_bad: "불필요한 비상제동(EB) 사용 — 급감속 충격",
+        eb_bad: "비상제동(EB) 체결 — 급감속 충격",
         score: n=>`최종 점수: ${n}점`,
         stopErr: m=>`정지 오차: ${m.toFixed(2)} m`,
          hintIdle: () => {
@@ -4305,7 +4499,7 @@ window.__brakeGuideOn = true;
   step_good: "Stepwise braking was applied correctly",
   step_bad: "Stepwise braking was poor, causing jolts and discomfort for passengers",
   eb_good: "Safe braking range observed — no EB applied",
-  eb_bad: "Unnecessary EB applied, causing a harsh jolt",
+  eb_bad: "EB applied, causing a harsh jolt",
   score: n => `Final score: ${n}`,
   stopErr: m => `Stopping error: ${m.toFixed(2)} m`,
   hintIdle: () => {
@@ -4411,5 +4605,34 @@ window.__brakeGuideOn = true;
 <footer style="text-align:center; font-size:12px; color:#888; padding:8px 0; user-select:none;">
   ©2025 Hyungsuk Choi, University of Maryland
 </footer>
+<!-- 🔴 장애물 충돌 경고 팝업 -->
+<div id="obstacleFailPopup" class="obstacle-popup">
+  <div class="obstacle-card obstacle-danger">
+<div class="obstacle-title">🚨장애물 충돌 발생🚨</div>
+<p class="obstacle-body">
+  선로 위 장애물을 그대로 지나쳤습니다.<br>
+  실제 상황에서는 즉시 비상제동을 체결하고, 관제에 보고해야 합니다.
+</p>
+<div class="obstacle-hint">
+  SPACE 키를 눌러 창을 닫고, 운전을 계속하십시오.
+</div>
+
+  </div>
+</div>
+
+<!-- 🟢 장애물 안전 정지 팝업 -->
+<div id="obstacleSuccessPopup" class="obstacle-popup">
+  <div class="obstacle-card obstacle-success">
+    <div class="obstacle-title">비상 정지 완료</div>
+<p class="obstacle-body">
+  장애물 앞에 안전하게 정지하였습니다.<br>
+  장애물이 완전히 사라질 때 까지 기다린 뒤, 운행을 재개해 주세요.
+</p>
+<div class="obstacle-hint">
+  SPACE 키를 눌러 창을 닫고, 운전을 계속하십시오.
+</div>
+
+  </div>
+</div>
 </body>
 </html>
