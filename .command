@@ -1,5 +1,5 @@
 git add .
-git commit -m "update 3d graphic"
+git commit -m "brake laddar svg"
 git push origin main
 
 pip install fastapi uvicorn[standard]
