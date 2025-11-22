@@ -1,24 +1,24 @@
-# JR Compact Train Driver Training Simulator (PTS): Lightweight Precision Stopping Trainer
+# JR Train Simulator: Lightweight Precision Stopping Trainer (PTS)
 
  
 [Try PTS!⛅️ → Play full screen on PC](https://jrtasc.kro.kr/) 
 ---
-<img width="1073" height="915" alt="제목 없음" src="https://github.com/user-attachments/assets/ce7b51dd-c7e5-4300-a2b2-4222b1b92d28" />
+<img width="1456" height="763" alt="a" src="https://github.com/user-attachments/assets/5e59b9bd-435f-40ae-966d-7077c6e64e5a" />
 <img width="980" height="265" alt="feedback" src="https://github.com/user-attachments/assets/b523694b-a208-4161-b031-6abb18f66f38" />
 
 A lightweight **web-based railway simulation framework** replicating key control functions of **JR East/West EMUs**.  
 Unlike heavy simulators, PTS is designed for **essential driving skill training** on PCs, as it enables repetitive **braking** and **stop-point accuracy** practice.
 
 Supports:
-- **Manual stop control**  
-- **TASC-assisted automatic stopping**  
-→ allowing direct **human vs. automation** performance comparison.
+- **Manual stop control** practice
+- **TASC-assisted automatic stopping**
+- **Emergency** scenarios including obstacles on track and rail suicides.
 
 Powered by **Three.js 3D visualization**, the simulator delivers an immersive driver’s POV and realistic track environment.  
 Real-time **velocity–distance** and **braking curve** rendering provides intuitive, instant feedback.
 
 By replicating authentic **EMU physics**, it enables:
-- **Repetitive stop training** using the random function
+- **Repetitive stop training** using the random scenario toggle
 - **Scenario-based evaluation**  
 - **Quantitative performance scoring** under diverse track conditions
 ---
@@ -70,6 +70,7 @@ Copyright © 2025 Hyungsuk Choi, University of Maryland
 Permission is hereby granted to use and modify this software for personal or internal purposes only.  
 Redistribution, reproduction, resale, public posting, or sharing of this software or any modified versions  
 is strictly prohibited without the express written permission of the author.
+
 
 
 
