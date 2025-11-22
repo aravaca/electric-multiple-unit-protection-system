@@ -13,6 +13,8 @@ Supports:
 - **Manual stop control** practice
 - **TASC-assisted automatic stopping**
 - **Emergency** scenarios including obstacles on track and rail suicides.
+- **Brake navigation** to explore efficient brake profiles (Toggle with B)
+- **Mini HUD** to assist trainees
 
 Powered by **Three.js 3D visualization**, the simulator delivers an immersive driver’s POV and realistic track environment.  
 Real-time **velocity–distance** and **braking curve** rendering provides intuitive, instant feedback.
@@ -70,6 +72,7 @@ Copyright © 2025 Hyungsuk Choi, University of Maryland
 Permission is hereby granted to use and modify this software for personal or internal purposes only.  
 Redistribution, reproduction, resale, public posting, or sharing of this software or any modified versions  
 is strictly prohibited without the express written permission of the author.
+
 
 
 
