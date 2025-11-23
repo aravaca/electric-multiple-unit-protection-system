@@ -1534,6 +1534,24 @@ const CAB_LAYOUTS = {
 [266, 210],
     ],
     speedText: { x: 865, y: 745, fontSize: 36, letterSpacing: 4 },
+        needle: {
+      img: "/static/photos/ktx_needle.png", // 바늘 PNG 경로
+      width: 45, // SVG 안에서 바늘 크기
+      height: 22,
+
+      // cab.png 기준 계기판 중심 (임시 값)
+      cx: 836,
+      cy: 675,
+
+      // needle.png 안에서 바늘 축 위치 (임시 값: 이미지 중앙)
+      px: 35.29,
+      py: 9.56,
+
+      // 회전 범위 + 풀스케일 속도
+      minAngle: -25, // 0 km/h일 때 각도
+      maxAngle: 235, // maxSpeed일 때 각도
+      maxSpeed: 300 // 계기판 끝속도
+    },
   },
 };
 
@@ -2196,30 +2214,6 @@ function getCabLayoutKeyFromVehicle(filePath) {
 // 간단한 동적 스케일러
 let lastFpsCheck = performance.now();
 let frames = 0;
-
-  // Conservative DPR autoscaler: check less frequently and change in larger steps to avoid
-  // frequent renderer reconfiguration which can cause frame hitches.
-  // function autoScaleDPR() {
-  //   frames++;
-  //   const now = performance.now();
-  //   // check every 1500ms
-  //   if (now - lastFpsCheck < 1500) return;
-  //   const fps = frames * 1000 / (now - lastFpsCheck || 1);
-  //   // compute desired DPR: be conservative to avoid rapid toggles
-  //   let desired = targetDPR;
-  //   if (fps < 45) desired = 1;        // degrade to low DPR on sustained low FPS
-  //   else if (fps > 65) desired = 1;    // upgrade to full DPR when comfortably above target
-
-  //   // only apply when change is meaningful to avoid repeated reflows
-  //   if (Math.abs(desired - targetDPR) >= 0.1) {
-  //     targetDPR = desired;
-  //     try { renderer.setPixelRatio(targetDPR); } catch(e) {}
-  //     try { resize(); } catch(e) {}
-  //   }
-
-  //   frames = 0;
-  //   lastFpsCheck = now;
-  // }
 
   // --- 텍스처 로더 ---
   const texLoader = new THREE.TextureLoader();
@@ -3256,12 +3250,14 @@ enforceFloat(inputGrade,-10,10,1);
 /* ✅ 속도별 최소 거리 규칙 */
 function minDistForSpeed(v) {
   if (v >= 240) return 6000;
-  if (v >= 200) return 4000;
-  if (v >= 180) return 2500;
-  if (v >= 130) return 1000;
-  if (v >= 120) return 900;
-  if (v >= 110) return 800;
-  if (v >= 100) return 600;
+  if (v >= 200) return 5000;
+  if (v >= 180) return 3000;
+  if (v >= 160) return 2500;
+  if (v >= 140) return 2000;
+  if (v >= 130) return 1500;
+  if (v >= 120) return 1200;
+  if (v >= 110) return 1000;
+  if (v >= 100) return 800;
   if (v >= 90)  return 500;
   if (v >= 80)  return 400;
   if (v >= 70)  return 300;
@@ -3277,7 +3273,7 @@ function showHint(msg) {
 }
 function applySpeedDistanceRule() {
   let v = Number(inputSpeed.value || 0);
-  v = Math.min(130, Math.max(40, v));
+  v = Math.max(40, v);
   const requiredMin = minDistForSpeed(v);
   let d = Number(inputDist.value || 0);
   const absoluteMin = 150, absoluteMax = 6000;
