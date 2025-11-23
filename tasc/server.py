@@ -10,6 +10,7 @@ from typing import Optional, List, Tuple
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 # ------------------------------------------------------------
@@ -1155,7 +1156,7 @@ class StoppingSim:
             else:
                 score += 300
 
-            last_notch = self.notch_history[-1] if self.notch_history else 0
+            last_notch = self.notch_history[-1] if self.notch_history and abs(st.stop_error_m) <= 1.0 else 0
             if last_notch == 1 or last_notch == 2:
                 score += 300
                 st.issues["stop_not_b1"] = False
@@ -1228,13 +1229,24 @@ class StoppingSim:
                 return notches[i+1:]
         # 음수가 없으면 원본 리스트 반환
         return notches
-
+    
+    def remove_adjacent_duplicates(self, lst):
+        if not lst:
+            return []
+        
+        result = [lst[0]]
+        for x in lst[1:]:
+            if x != result[-1]:
+                result.append(x) 
+        return result
     
     def is_stair_pattern(self, notches: List[int]) -> bool:
 
+        notches = self.remove_adjacent_duplicates(notches)
+        print(notches)
         notches = self.remove_negative_values(notches)
-
-        if len(notches) < 4:
+        print(notches)
+        if len(notches) < 5:
             return False
 
         peak_reached = False
@@ -1269,11 +1281,15 @@ class StoppingSim:
         adjusted_jerk = avg_jerk * (1 + penalty_factor)
 
         # 12 이하 → 500점, 12~30 → 선형 감소, 30 이상 → 0점
-        low_bound = 13.3
+        if adjusted_jerk <= 10:
+            return adjusted_jerk, 0
+        
+        low_bound = 21.6
+        high_bound = 24
         if adjusted_jerk <= low_bound:
             jerk_score = 500
-        elif adjusted_jerk <= 30:
-            jerk_score = 500 * (30 - adjusted_jerk) / (30 - low_bound)  # 500 * (30 - jerk)/18
+        elif adjusted_jerk <= high_bound:
+            jerk_score = 500 * (high_bound - adjusted_jerk) / (high_bound - low_bound)  # 500 * (30 - jerk)/18
         else:
             jerk_score = 0
 
@@ -1340,8 +1356,6 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 @app.get("/")
 async def root():
     return HTMLResponse(open(os.path.join(STATIC_DIR, "index.html"), "r", encoding="utf-8").read())
-
-from fastapi.responses import FileResponse
 
 @app.get("/favicon.ico")
 async def favicon():

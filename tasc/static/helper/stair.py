@@ -1,5 +1,15 @@
 from typing import Optional, List, Tuple
 
+def remove_adjacent_duplicates(lst):
+    if not lst:
+        return []
+    
+    result = [lst[0]]
+    for x in lst[1:]:
+        if x != result[-1]:
+            result.append(x)
+    return result
+
 def remove_negative_values(notches: List[int]) -> List[int]:
     """마지막 음수 값 뒤에 있는 모든 수 반환, 음수가 없으면 원본 리스트 반환"""
     # 역순으로 탐색해서 마지막 음수 값을 찾음
@@ -36,3 +46,6 @@ def is_stair_pattern(notches: List[int]) -> bool:
         return True
 print(is_stair_pattern(remove_negative_values([6, 1, 2, 1])))
 
+# 예시
+data = [1,0,-5,-5,-4,1,0,1,1,2,1]
+print(remove_adjacent_duplicates(data))

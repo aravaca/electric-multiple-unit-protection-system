@@ -2235,13 +2235,24 @@ const personTextureFiles = [
   "/static/textures/1000010905.png",
   "/static/textures/1000010907.png",
   "/static/textures/1000010908.png",
-  "/static/textures/1000010912.png",
   "/static/textures/1000010914.png",
   "/static/textures/1000010917.png",
   "/static/textures/1000010918.png",
   "/static/textures/1000010911.png",
-];
-
+  "/static/textures/1000010995.png",
+  "/static/textures/1000010996.png",
+  "/static/textures/1000010997.png",
+  "/static/textures/1000010998.png",
+  "/static/textures/1000011008.png",
+  "/static/textures/1000011009.png",
+  "/static/textures/1000011010.png",
+  "/static/textures/1000011011.png",
+  "/static/textures/1000011012.png",
+  "/static/textures/1000011013.png",
+  "/static/textures/1000011014.png",
+  "/static/textures/1000011015.png",
+  "/static/textures/1000011016.png",
+]
 
 // PNG → Texture
 const personTextures = personTextureFiles.map(path => {
@@ -4588,7 +4599,7 @@ window.__brakeGuideOn = true;
       feedback: {
         early_good: "초기 제동을 수행함 — 부드럽게 제동 진입",
         early_bad: "초기 제동을 게을리함 — 승차감 불쾌",
-        stop_good: "정차 시 B1/B2로 정차함 — 정차 직전 승차감 양호",
+        stop_good: "정차 시 B1/B2로 정차함 — 정차 승차감 양호",
         stop_bad: "정차 시 B1/B2로 정차하지 않음 — 승차감 불쾌",
         step_good: "기본제동 (계단제동/완해) 수행함",
         step_bad: "기본제동 (계단제동/완해) 미흡 — 불규칙한 제동 패턴으로 인한 승차감 불쾌",
@@ -4646,7 +4657,7 @@ window.__brakeGuideOn = true;
   early_good: "You braked early — smooth initial deceleration",
   early_bad: "You braked late — the ride felt rough",
   stop_good: "Stopped with B1/B2 — smooth stop",
-  stop_bad: "Failed to stop with B1/B2 — the ride felt rough",
+  stop_bad: "Failed to stop with B1/B2 — rough stop",
   step_good: "Stepwise braking was applied correctly",
   step_bad: "Stepwise braking was poor, causing jolts and discomfort for passengers",
   eb_good: "Safe braking range observed — no EB applied",
